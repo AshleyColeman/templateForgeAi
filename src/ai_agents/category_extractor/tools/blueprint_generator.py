@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
+from strands import tool
 
 from ..config import get_config
 from ..errors import BlueprintError
@@ -43,6 +44,7 @@ class BlueprintGeneratorTool:
         self.config = get_config()
         self.logger = get_logger(agent.retailer_id)
 
+    @tool
     async def generate(self, categories: List[Dict[str, Any]], strategy: Dict[str, Any]) -> str:
         if not categories:
             raise BlueprintError("Cannot generate blueprint with zero categories")

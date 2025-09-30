@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Tuple
 
 from playwright.async_api import Page
+from strands import tool
 
 from ..errors import ExtractionError
 from ..utils.logger import get_logger
@@ -21,6 +22,7 @@ class CategoryExtractorTool:
         self._next_id = 1
         self.logger = get_logger(agent.retailer_id)
 
+    @tool
     async def extract(self, url: Optional[str] = None) -> Dict[str, Any]:
         page = self._require_page()
         target_url = url or self.agent.site_url

@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Any, Dict
 
 import tenacity
+from strands import tool
 
 from ..config import get_config
 from ..errors import AnalysisError
@@ -23,6 +24,7 @@ class PageAnalyzerTool:
         self.llm_client = create_llm_client(self.config)
         self.logger = get_logger(agent.retailer_id)
 
+    @tool
     async def analyze(self, url: str, force_refresh: bool = False) -> Dict[str, Any]:
         if not self.agent.page:
             raise AnalysisError("Agent page not initialised. Call initialize_browser().")
