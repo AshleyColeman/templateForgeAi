@@ -51,8 +51,9 @@ class CategoryExtractionAgent:
         self.category_extractor = CategoryExtractorTool(self)
         self.blueprint_generator = BlueprintGeneratorTool(self)
         
-        # Create agent with tools (Strands 1.10 API)
+        # Create agent (tools registered after creation in _register_tools)
         self.agent = self._create_strands_agent()
+        self._register_tools()
 
     def _create_strands_agent(self) -> Any:
         if StrandsAgent is None:
@@ -71,13 +72,7 @@ class CategoryExtractionAgent:
                 temperature=self.config.model_temperature,
                 keep_alive=self.config.ollama_keep_alive,
             )
-            # Strands 1.10+ API: pass tools to constructor
-            tools = [
-                self.page_analyzer.analyze,
-                self.category_extractor.extract,
-                self.blueprint_generator.generate
-            ]
-            return StrandsAgent(model=model, system_prompt=self._system_prompt(), tools=tools)
+            return StrandsAgent(model=model, system_prompt=self._system_prompt())
         
         elif provider == "openai":
             from strands.models.openai import OpenAIModel
@@ -87,13 +82,7 @@ class CategoryExtractionAgent:
                 base_url=self.config.openai_base_url,
                 temperature=self.config.model_temperature,
             )
-            # Strands 1.10+ API: pass tools to constructor
-            tools = [
-                self.page_analyzer.analyze,
-                self.category_extractor.extract,
-                self.blueprint_generator.generate
-            ]
-            return StrandsAgent(model=model, system_prompt=self._system_prompt(), tools=tools)
+            return StrandsAgent(model=model, system_prompt=self._system_prompt())
         
         elif provider == "anthropic":
             from strands.models.anthropic import AnthropicModel
@@ -102,26 +91,14 @@ class CategoryExtractionAgent:
                 api_key=self.config.anthropic_api_key,
                 temperature=self.config.model_temperature,
             )
-            # Strands 1.10+ API: pass tools to constructor
-            tools = [
-                self.page_analyzer.analyze,
-                self.category_extractor.extract,
-                self.blueprint_generator.generate
-            ]
-            return StrandsAgent(model=model, system_prompt=self._system_prompt(), tools=tools)
+            return StrandsAgent(model=model, system_prompt=self._system_prompt())
         
         else:
             # Fallback to basic configuration
-            tools = [
-                self.page_analyzer.analyze,
-                self.category_extractor.extract,
-                self.blueprint_generator.generate
-            ]
             return StrandsAgent(
                 model_provider=provider,
                 model_id=self.config.model_id,
-                system_prompt=self._system_prompt(),
-                tools=tools
+                system_prompt=self._system_prompt()
             )
 
     def _system_prompt(self) -> str:
@@ -133,9 +110,49 @@ class CategoryExtractionAgent:
         )
 
     def _register_tools(self) -> None:
-        # Tools are now passed to Agent constructor in _create_strands_agent()
-        # This method kept for backward compatibility but does nothing
-        pass
+        """Register tools with Strands 1.10 using the @tool decorator pattern."""
+        # Strands 1.10 uses the @agent.tool() decorator
+        # We need to wrap our methods as standalone functions
+        
+        @self.agent.tool()
+        async def analyze_page(url: str, force_refresh: bool = False) -> dict:
+            """Analyze webpage structure to determine category extraction strategy.
+            
+            Args:
+                url: The URL to analyze
+                force_refresh: Whether to force page reload
+                
+            Returns:
+                Analysis results with navigation type, selectors, and confidence
+            """
+            return await self.page_analyzer.analyze(url, force_refresh)
+        
+        @self.agent.tool()
+        async def extract_categories(url: str, parent_id: int = None, depth: int = 0) -> dict:
+            """Extract categories from a webpage.
+            
+            Args:
+                url: The URL to extract categories from
+                parent_id: Parent category ID (None for top-level)
+                depth: Current recursion depth
+                
+            Returns:
+                Extracted categories with hierarchy information
+            """
+            return await self.category_extractor.extract(url, parent_id, depth)
+        
+        @self.agent.tool()
+        async def generate_blueprint(analysis: dict, categories: list) -> dict:
+            """Generate a reusable blueprint from extraction results.
+            
+            Args:
+                analysis: Page analysis results
+                categories: Extracted categories
+                
+            Returns:
+                Blueprint path and metadata
+            """
+            return await self.blueprint_generator.generate(analysis, categories)
 
     async def initialize_browser(self) -> None:
         if self.browser:
