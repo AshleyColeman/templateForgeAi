@@ -8,6 +8,8 @@ from typing import Iterable
 
 
 REQUIRED_PACKAGES = {
+    "strands-agents": "strands",
+    "ollama": "ollama",
     "playwright": "playwright.async_api",
     "asyncpg": "asyncpg",
     "pydantic": "pydantic",
@@ -18,6 +20,7 @@ REQUIRED_PACKAGES = {
     "anthropic": "anthropic",
     "httpx": "httpx",
     "tenacity": "tenacity",
+    "beautifulsoup4": "bs4",
 }
 
 DIRECTORIES = [

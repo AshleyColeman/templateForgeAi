@@ -42,8 +42,17 @@ class CategoryExtractionAgent:
             "errors": [],
         }
 
+        # Create tools first
+        from .tools.page_analyzer import PageAnalyzerTool
+        from .tools.category_extractor import CategoryExtractorTool
+        from .tools.blueprint_generator import BlueprintGeneratorTool
+
+        self.page_analyzer = PageAnalyzerTool(self)
+        self.category_extractor = CategoryExtractorTool(self)
+        self.blueprint_generator = BlueprintGeneratorTool(self)
+        
+        # Create agent with tools (Strands 1.10 API)
         self.agent = self._create_strands_agent()
-        self._register_tools()
 
     def _create_strands_agent(self) -> Any:
         if StrandsAgent is None:
@@ -62,7 +71,13 @@ class CategoryExtractionAgent:
                 temperature=self.config.model_temperature,
                 keep_alive=self.config.ollama_keep_alive,
             )
-            return StrandsAgent(model=model, system_prompt=self._system_prompt())
+            # Strands 1.10+ API: pass tools to constructor
+            tools = [
+                self.page_analyzer.analyze,
+                self.category_extractor.extract,
+                self.blueprint_generator.generate
+            ]
+            return StrandsAgent(model=model, system_prompt=self._system_prompt(), tools=tools)
         
         elif provider == "openai":
             from strands.models.openai import OpenAIModel
@@ -72,7 +87,13 @@ class CategoryExtractionAgent:
                 base_url=self.config.openai_base_url,
                 temperature=self.config.model_temperature,
             )
-            return StrandsAgent(model=model, system_prompt=self._system_prompt())
+            # Strands 1.10+ API: pass tools to constructor
+            tools = [
+                self.page_analyzer.analyze,
+                self.category_extractor.extract,
+                self.blueprint_generator.generate
+            ]
+            return StrandsAgent(model=model, system_prompt=self._system_prompt(), tools=tools)
         
         elif provider == "anthropic":
             from strands.models.anthropic import AnthropicModel
@@ -81,14 +102,26 @@ class CategoryExtractionAgent:
                 api_key=self.config.anthropic_api_key,
                 temperature=self.config.model_temperature,
             )
-            return StrandsAgent(model=model, system_prompt=self._system_prompt())
+            # Strands 1.10+ API: pass tools to constructor
+            tools = [
+                self.page_analyzer.analyze,
+                self.category_extractor.extract,
+                self.blueprint_generator.generate
+            ]
+            return StrandsAgent(model=model, system_prompt=self._system_prompt(), tools=tools)
         
         else:
             # Fallback to basic configuration
+            tools = [
+                self.page_analyzer.analyze,
+                self.category_extractor.extract,
+                self.blueprint_generator.generate
+            ]
             return StrandsAgent(
                 model_provider=provider,
                 model_id=self.config.model_id,
                 system_prompt=self._system_prompt(),
+                tools=tools
             )
 
     def _system_prompt(self) -> str:
@@ -100,17 +133,9 @@ class CategoryExtractionAgent:
         )
 
     def _register_tools(self) -> None:
-        from .tools.page_analyzer import PageAnalyzerTool
-        from .tools.category_extractor import CategoryExtractorTool
-        from .tools.blueprint_generator import BlueprintGeneratorTool
-
-        self.page_analyzer = PageAnalyzerTool(self)
-        self.category_extractor = CategoryExtractorTool(self)
-        self.blueprint_generator = BlueprintGeneratorTool(self)
-
-        self.agent.add_tool(self.page_analyzer.analyze)  # type: ignore[arg-type]
-        self.agent.add_tool(self.category_extractor.extract)  # type: ignore[arg-type]
-        self.agent.add_tool(self.blueprint_generator.generate)  # type: ignore[arg-type]
+        # Tools are now passed to Agent constructor in _create_strands_agent()
+        # This method kept for backward compatibility but does nothing
+        pass
 
     async def initialize_browser(self) -> None:
         if self.browser:
