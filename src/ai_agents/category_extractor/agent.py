@@ -205,22 +205,48 @@ class CategoryExtractionAgent:
         self.logger.error("Extraction error: {}", message)
 
     async def cleanup(self) -> None:
+        """Clean up resources in the correct order to avoid event loop errors."""
+        # Database cleanup first (doesn't rely on event loop)
+        try:
+            await self.db.disconnect()
+        except Exception as e:
+            self.logger.debug("DB disconnect error: {}", e)
+        
+        # Browser cleanup (must complete before event loop closes)
         try:
             if self.page:
-                await self.page.close()
+                try:
+                    if not self.page.is_closed():
+                        await self.page.close()
+                except Exception:
+                    pass
+            
             if self.context:
-                await self.context.close()
+                try:
+                    await self.context.close()
+                except Exception:
+                    pass
+            
             if self.browser:
-                await self.browser.close()
+                try:
+                    await self.browser.close()
+                except Exception:
+                    pass
+            
             if self.playwright:
-                await self.playwright.stop()
+                try:
+                    # Stop playwright BEFORE event loop closes
+                    await self.playwright.stop()
+                except Exception:
+                    pass
+        except Exception as e:
+            self.logger.debug("Cleanup error: {}", e)
         finally:
-            await self.db.disconnect()
-            self.playwright = None
-            self.browser = None
-            self.context = None
+            # Clear all references
             self.page = None
-            self.logger.info("Cleanup complete")
+            self.context = None
+            self.browser = None
+            self.playwright = None
 
 
 __all__ = ["CategoryExtractionAgent"]

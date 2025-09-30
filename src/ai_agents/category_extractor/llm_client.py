@@ -157,10 +157,12 @@ class OllamaLLMClient(LLMClient):
             
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    f"{self.config.ollama_host}/api/generate",
+                    f"{self.config.ollama_host}/api/chat",
                     json={
                         "model": self.config.ollama_model,
-                        "prompt": prompt,
+                        "messages": [
+                            {"role": "user", "content": prompt}
+                        ],
                         "stream": False,
                         "options": {
                             "temperature": self.config.model_temperature,
@@ -172,7 +174,8 @@ class OllamaLLMClient(LLMClient):
                 response.raise_for_status()
                 
                 result = response.json()
-                content = result.get("response", "")
+                # Ollama /api/chat returns message in result["message"]["content"]
+                content = result.get("message", {}).get("content", "")
                 return self._parse_response(content, url)
                 
         except Exception as e:

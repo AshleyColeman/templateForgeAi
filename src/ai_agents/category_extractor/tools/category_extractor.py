@@ -33,6 +33,12 @@ class CategoryExtractorTool:
 
         strategy = self._get_strategy()
         navigation_type = strategy.get("navigation_type", "generic")
+        
+        # Handle pipe-separated navigation types (e.g., "sidebar|hover_menu")
+        # Take the first option if multiple are provided
+        if "|" in navigation_type:
+            navigation_type = navigation_type.split("|")[0].strip()
+            self.logger.info("Multiple navigation types detected, using: {}", navigation_type)
 
         if navigation_type == "hover_menu":
             categories = await self._extract_hover_menu(page, strategy)
@@ -103,16 +109,23 @@ class CategoryExtractorTool:
 
         categories: List[Category] = []
         blocks = await page.query_selector_all(container)
-        for block in blocks:
+        self.logger.info("Found {} navigation blocks with selector: {}", len(blocks), container)
+        
+        for idx, block in enumerate(blocks):
             links = await block.query_selector_all(link_selector)
+            self.logger.info("Block {}: Found {} links with selector: {}", idx, len(links), link_selector)
+            
             for link in links:
                 try:
                     name, url = await self._extract_link(link, None)
+                    self.logger.debug("Extracted: {} -> {}", name, url)
                     current_id = self._next_category_id()
                     categories.append(self._build_category(current_id, name, url, 0, None))
                 except Exception as exc:  # noqa: BLE001
                     self.logger.debug("Skipping link due to error: {}", exc)
                     continue
+        
+        self.logger.info("Total categories extracted: {}", len(categories))
         return categories
 
     async def _extract_generic_links(self, page: Page, strategy: Dict[str, Any]) -> List[Category]:
