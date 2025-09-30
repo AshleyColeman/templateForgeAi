@@ -1,0 +1,9 @@
+[
+  {
+    "id": 1,
+    "name": "Root",
+    "url": "https://example.com/root",
+    "depth": 0,
+    "parent_id": null
+  }
+]

@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Build artifacts
+build/
+dist/
+.eggs/
+*.egg-info/
+
+# Editor metadata
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+
+# Poetry lock (optional)
+poetry.lock
+
+# Logs
+logs/*.log
+
+# Playwright artifacts
+playwright-report/
+.playwright/
+
+# Coverage reports
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Blueprints (generated)
+src/ai_agents/category_extractor/blueprints/*.json
+
+# Test artifacts
+.pytest_cache/
+test-results/
