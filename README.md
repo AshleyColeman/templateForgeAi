@@ -11,3 +11,11 @@ poetry run python verify_setup.py
 ```
 
 All environment variables are documented in `.env.example`.
+
+## Quality Checks
+
+```bash
+make quality
+```
+
+This runs formatting, linting, and tests (excluding e2e). To include end-to-end checks, set `RUN_E2E=1` and invoke the relevant pytest markers once Playwright, PostgreSQL, and Bedrock credentials are available.

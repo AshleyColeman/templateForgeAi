@@ -8,7 +8,7 @@ import asyncpg
 
 from .config import get_config
 from .errors import DatabaseError
-from .utils.logger import log
+from .utils.logger import get_logger
 
 
 class CategoryDatabase:
@@ -17,15 +17,16 @@ class CategoryDatabase:
     def __init__(self) -> None:
         self.config = get_config()
         self.pool: Optional[asyncpg.Pool] = None
+        self.logger = get_logger()
 
     async def connect(self) -> None:
         """Create asyncpg connection pool."""
         if self.pool is not None:
-            log.debug("Database pool already initialised")
+            self.logger.debug("Database pool already initialised")
             return
         try:
-            log.info(
-                "Connecting to database %s:%s/%s",
+            self.logger.info(
+                "Connecting to database {}:{}/{}",
                 self.config.db_host,
                 self.config.db_port,
                 self.config.db_name,
@@ -43,7 +44,7 @@ class CategoryDatabase:
             )
             async with self.pool.acquire() as conn:
                 version = await conn.fetchval("SELECT version()")
-                log.info("Connected to PostgreSQL: %s", version.split()[0])
+                self.logger.info("Connected to PostgreSQL: {}", version.split()[0])
         except asyncpg.PostgresError as exc:  # pragma: no cover - connection failure
             raise DatabaseError(f"Failed to connect to database: {exc}") from exc
         except Exception as exc:  # noqa: BLE001  # pragma: no cover
@@ -55,7 +56,7 @@ class CategoryDatabase:
             return
         await self.pool.close()
         self.pool = None
-        log.info("Database connection pool closed")
+        self.logger.info("Database connection pool closed")
 
     async def save_categories(self, categories: List[Dict[str, Any]], retailer_id: int) -> Dict[str, int]:
         """Persist category hierarchy for a retailer.
@@ -73,7 +74,8 @@ class CategoryDatabase:
         stats = {"saved": 0, "updated": 0, "skipped": 0, "errors": 0}
         id_map: Dict[Any, int] = {}
         sorted_categories = sorted(categories, key=lambda cat: cat.get("depth", 0))
-        log.info("Saving %s categories for retailer %s", len(sorted_categories), retailer_id)
+        logger = self.logger.bind(retailer_id=retailer_id)
+        logger.info("Saving {} categories for retailer {}", len(sorted_categories), retailer_id)
 
         async with self.pool.acquire() as conn:
             async with conn.transaction():
@@ -83,7 +85,7 @@ class CategoryDatabase:
                         url = category.get("url")
                         if not url:
                             stats["skipped"] += 1
-                            log.warning("Skipping category without URL: %s", name)
+                            logger.warning("Skipping category without URL: {}", name)
                             continue
 
                         local_parent_id = category.get("parent_id")
@@ -112,7 +114,7 @@ class CategoryDatabase:
                             )
                             id_map[category.get("id")] = existing["id"]
                             stats["updated"] += 1
-                            log.debug("Updated category %s (%s)", name, existing["id"])
+                            logger.debug("Updated category {} ({})", name, existing["id"])
                         else:
                             inserted = await conn.fetchrow(
                                 """
@@ -132,15 +134,15 @@ class CategoryDatabase:
                             )
                             id_map[category.get("id")] = inserted["id"]
                             stats["saved"] += 1
-                            log.debug("Inserted category %s (%s)", name, inserted["id"])
+                            logger.debug("Inserted category {} ({})", name, inserted["id"])
                     except asyncpg.PostgresError as exc:
                         stats["errors"] += 1
-                        log.error("Database error saving category '%s': %s", category.get("name"), exc)
+                        logger.error("Database error saving category '{}': {}", category.get("name"), exc)
                     except Exception as exc:  # noqa: BLE001
                         stats["errors"] += 1
-                        log.error("Unexpected error saving category '%s': %s", category.get("name"), exc)
-        log.info(
-            "Save complete: saved=%s updated=%s skipped=%s errors=%s",
+                        logger.error("Unexpected error saving category '{}': {}", category.get("name"), exc)
+        logger.info(
+            "Save complete: saved={} updated={} skipped={} errors={}",
             stats["saved"],
             stats["updated"],
             stats["skipped"],
@@ -158,7 +160,10 @@ class CategoryDatabase:
                 "SELECT id, name, base_url, enabled FROM retailers WHERE id = $1",
                 retailer_id,
             )
-            return dict(row) if row else None
+            result = dict(row) if row else None
+            if not result:
+                self.logger.warning("Retailer {} not found in database", retailer_id)
+            return result
 
     async def get_categories_by_retailer(self, retailer_id: int, enabled_only: bool = True) -> List[Dict[str, Any]]:
         """Return categories for a retailer."""
@@ -187,7 +192,7 @@ class CategoryDatabase:
         async with self.pool.acquire() as conn:
             result = await conn.execute("DELETE FROM categories WHERE retailer_id = $1", retailer_id)
         count = int(result.split()[-1])
-        log.info("Deleted %s categories for retailer %s", count, retailer_id)
+        self.logger.bind(retailer_id=retailer_id).info("Deleted {} categories for retailer {}", count, retailer_id)
         return count
 
     async def health_check(self) -> bool:
@@ -199,7 +204,7 @@ class CategoryDatabase:
                 await conn.fetchval("SELECT 1")
             return True
         except Exception as exc:  # noqa: BLE001
-            log.error("Database health check failed: %s", exc)
+            self.logger.error("Database health check failed: {}", exc)
             return False
 
 

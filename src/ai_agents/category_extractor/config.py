@@ -35,15 +35,37 @@ class ExtractorConfig(BaseSettings):
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
-    # AWS
-    aws_region: str = Field(default="us-east-1", description="AWS region")
-    aws_access_key_id: Optional[str] = Field(default=None, description="AWS access key")
-    aws_secret_access_key: Optional[str] = Field(default=None, description="AWS secret key")
-
-    # Model
+    # LLM Provider Configuration
+    llm_provider: str = Field(
+        default="ollama", 
+        description="LLM provider: 'ollama', 'openai', 'anthropic', 'openrouter'"
+    )
+    
+    # OpenAI Configuration
+    openai_api_key: Optional[str] = Field(default=None, description="OpenAI API key")
+    openai_model: str = Field(default="gpt-4o-mini", description="OpenAI model")
+    openai_base_url: Optional[str] = Field(default=None, description="OpenAI base URL (for custom endpoints)")
+    
+    # Anthropic Configuration  
+    anthropic_api_key: Optional[str] = Field(default=None, description="Anthropic API key")
+    anthropic_model: str = Field(default="claude-3-5-sonnet-20241022", description="Anthropic model")
+    
+    # OpenRouter Configuration
+    openrouter_api_key: Optional[str] = Field(default=None, description="OpenRouter API key")
+    openrouter_model: str = Field(default="anthropic/claude-3.5-sonnet", description="OpenRouter model")
+    
+    # Ollama Configuration
+    ollama_host: str = Field(default="http://localhost:11434", description="Ollama server host")
+    ollama_model: str = Field(
+        default="gemma3:1b",
+        description="Ollama model (use gemma3:1b or deepseek-r1:1.5b for 8GB VRAM)",
+    )
+    ollama_keep_alive: str = Field(default="5m", description="How long model stays loaded")
+    
+    # Model (for backward compatibility)
     model_id: str = Field(
-        default="us.anthropic.claude-sonnet-4-20250514-v1:0",
-        description="AWS Bedrock model identifier",
+        default="gemma3:1b",
+        description="Model identifier (defaults to provider-specific model)",
     )
     model_temperature: float = Field(
         default=0.0,
@@ -89,8 +111,21 @@ class ExtractorConfig(BaseSettings):
         """Validate required secrets and enumerations."""
         if not self.db_password:
             raise ValueError("DB_PASSWORD must be set in environment")
-        if not self.aws_access_key_id or not self.aws_secret_access_key:
-            raise ValueError("AWS credentials must be set in environment")
+        
+        # Validate LLM provider configuration
+        valid_providers = {"ollama", "openai", "anthropic", "openrouter"}
+        if self.llm_provider not in valid_providers:
+            raise ValueError(f"LLM_PROVIDER must be one of: {sorted(valid_providers)}")
+        
+        # Validate provider-specific credentials
+        if self.llm_provider == "openai" and not self.openai_api_key:
+            raise ValueError("OPENAI_API_KEY must be set when using OpenAI provider")
+        elif self.llm_provider == "anthropic" and not self.anthropic_api_key:
+            raise ValueError("ANTHROPIC_API_KEY must be set when using Anthropic provider")
+        elif self.llm_provider == "openrouter" and not self.openrouter_api_key:
+            raise ValueError("OPENROUTER_API_KEY must be set when using OpenRouter provider")
+        # Ollama doesn't require API keys
+        
         valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
         if self.log_level.upper() not in valid_levels:
             raise ValueError(f"LOG_LEVEL must be one of: {sorted(valid_levels)}")
@@ -98,7 +133,10 @@ class ExtractorConfig(BaseSettings):
     def display_config(self) -> Dict[str, Optional[str]]:
         """Return config for display with sensitive values masked."""
         data: Dict[str, Optional[str]] = self.model_dump()
-        for key in ("db_password", "aws_access_key_id", "aws_secret_access_key"):
+        sensitive_keys = (
+            "db_password", "openai_api_key", "anthropic_api_key", "openrouter_api_key"
+        )
+        for key in sensitive_keys:
             if data.get(key):
                 data[key] = "***MASKED***"
         return data
