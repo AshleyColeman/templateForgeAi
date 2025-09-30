@@ -548,6 +548,6 @@ Before deploying:
 - [ ] Verify blueprint generation
 - [ ] Test with headless and non-headless modes
 - [ ] Check logs for errors/warnings
-- [ ] Verify AWS Bedrock costs are within budget
+- [ ] Verify Ollama/OpenAI/Anthropic costs are within budget
 - [ ] Test recovery from network failures
 - [ ] Verify no memory leaks in long-running extractions

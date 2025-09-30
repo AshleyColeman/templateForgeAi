@@ -35,7 +35,7 @@ An autonomous AI agent that:
 │            CategoryExtractionAgent (Orchestrator)        │
 │  - Manages workflow                                      │
 │  - Coordinates tools                                     │
-│  - Uses Strands Agents SDK + Claude 4 Sonnet           │
+│  - Uses Strands Agents SDK + Claude or GPT models           │
 └────────────┬────────────────────────────────────────────┘
              │
              │ Uses ↓
@@ -65,7 +65,7 @@ An autonomous AI agent that:
 ### Core Technologies
 - **Python 3.11+**: Primary language
 - **Strands Agents SDK**: AI agent framework
-- **Claude 4 Sonnet**: LLM for analysis (via AWS Bedrock)
+- **LLM Provider**: Ollama (free, local), OpenAI, or Anthropic
 - **Playwright**: Browser automation
 - **PostgreSQL**: Database (existing schema)
 - **Poetry**: Dependency management
@@ -79,7 +79,9 @@ pydantic = "^2.5.0"             # Data validation
 click = "^8.1.0"                # CLI framework
 rich = "^13.7.0"                # Terminal formatting
 loguru = "^0.7.2"               # Logging
-anthropic = "^0.8.0"            # Anthropic Claude API
+openai = "^1.0.0"               # OpenAI API (optional)
+anthropic = "^0.8.0"            # Anthropic API (optional)
+httpx = "^0.25.0"               # HTTP client for Ollama
 tenacity = "^8.2.0"             # Retry logic
 beautifulsoup4 = "^4.12.0"      # HTML parsing
 ```
@@ -112,32 +114,38 @@ CREATE TABLE retailers (
 
 **Connection String**:
 ```
-postgresql://postgres:postgres@localhost:5432/products?schema=public
+postgresql://postgres:postgres@localhost:5432/products
 ```
 
 ## 🎨 Design Principles
 
-### 1. Spec-Driven Development
+### 1. Multi-Provider LLM Support
+- **Ollama** (default): Free, runs locally, no API costs
+- **OpenAI**: Pay-per-use, best speed/cost balance
+- **Anthropic**: Pay-per-use, highest quality
+- Configure via `LLM_PROVIDER` environment variable
+
+### 2. Spec-Driven Development
 - Each task has detailed specifications
 - Implementation must match specs exactly
 - No shortcuts or "good enough" solutions
 
-### 2. Minimal Dependencies
+### 3. Minimal Dependencies
 - Use async/await throughout
 - Keep dependencies lean
 - Prefer standard library when possible
 
-### 3. Error Handling
+### 4. Error Handling
 - Every function has error handling
 - Graceful degradation
 - Clear, actionable error messages
 
-### 4. Logging
+### 5. Logging
 - Log all major operations
 - Include context in logs
 - Use appropriate log levels (DEBUG, INFO, WARNING, ERROR)
 
-### 5. Type Safety
+### 6. Type Safety
 - Use type hints everywhere
 - Pydantic models for validation
 - MyPy checks pass
@@ -159,7 +167,11 @@ poetry run playwright install chromium
 
 # Configure environment
 cp .env.example .env
-# Edit with AWS and DB credentials
+# Edit with LLM provider and DB credentials
+
+# Install Ollama (optional, for free local LLM)
+curl -fsSL https://ollama.com/install.sh | sh
+ollama pull gemma3:1b
 ```
 
 ### Step 2: Implement Tasks in Order
@@ -254,7 +266,7 @@ Once created, blueprints enable fast extraction without LLM costs.
 
 ### Must-Haves
 
-1. **AWS Bedrock Integration**: Use Claude 4 Sonnet via AWS Bedrock (not Anthropic direct API)
+1. **LLM Provider Configuration**: Choose Ollama (free), OpenAI, or Anthropic
 2. **Async/Await**: All I/O operations must be async
 3. **PostgreSQL Connection Pooling**: Use asyncpg with connection pool
 4. **Error Handling**: Try-except blocks with specific exception types
@@ -431,10 +443,10 @@ As you work through tasks, refer to:
 2. Focus on: page.goto, page.query_selector, page.click
 3. Understand async_playwright pattern
 
-### New to AWS Bedrock?
-1. Set up AWS CLI credentials
-2. Enable Claude 4 Sonnet in console
-3. Test with boto3 example
+### New to LLM Providers?
+1. **Ollama** (easiest): `ollama pull gemma3:1b && ollama serve`
+2. **OpenAI**: Get API key from platform.openai.com
+3. **Anthropic**: Get API key from console.anthropic.com
 
 ## ⏱️ Time Estimates
 
@@ -447,7 +459,7 @@ Realistic time estimates per task:
 - Task 10 (Blueprints): 4-6 hours
 - Task 11 (Testing): 8-12 hours
 
-**Total: 40-60 hours** for complete implementation
+**Total: 35-55 hours** for complete implementation (faster without AWS setup)
 
 ## 🚨 Common Pitfalls to Avoid
 

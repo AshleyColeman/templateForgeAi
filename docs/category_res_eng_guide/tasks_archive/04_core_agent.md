@@ -9,7 +9,7 @@
 
 ## 📋 Objective
 
-Build the `CategoryExtractionAgent` orchestrator that coordinates the AI workflow, initializes the browser, registers tools, communicates with AWS Bedrock via the Strands Agents SDK, and manages lifecycle concerns (cleanup, error capture, and state tracking).
+Build the `CategoryExtractionAgent` orchestrator that coordinates the AI workflow, initializes the browser, registers tools, communicates with Ollama/OpenAI/Anthropic via the Strands Agents SDK, and manages lifecycle concerns (cleanup, error capture, and state tracking).
 
 ## 🎯 Success Criteria
 

@@ -111,7 +111,7 @@ python scrape_categories.py --url https://newretailer.com --retailer-id 5
 
 **Runtime & Language:**
 - **Python 3.11+**: Modern Python with type hints
-- **Strands Agents SDK**: AI agent framework (Amazon Bedrock backend)
+- **Strands Agents SDK**: AI agent framework (Ollama/OpenAI/Anthropic backend)
 
 **Web Automation:**
 - **Playwright for Python**: Modern browser automation (preferred over Puppeteer)
@@ -119,7 +119,7 @@ python scrape_categories.py --url https://newretailer.com --retailer-id 5
 - **lxml**: Fast XML/HTML processing
 
 **AI/LLM:**
-- **Amazon Bedrock**: Claude 4 Sonnet (via Strands)
+- **Ollama/OpenAI/Anthropic**: Claude or GPT models (via Strands)
 - **Anthropic Claude**: Vision capabilities for page analysis
 - **OpenAI GPT-4 Vision**: Alternative for visual understanding
 

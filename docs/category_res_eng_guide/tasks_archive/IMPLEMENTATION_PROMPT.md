@@ -11,7 +11,7 @@ Use this prompt when working with an AI assistant (like Claude, GPT-4, etc.) to 
 You are helping build an **AI-powered category extraction system** for e-commerce websites using Python. The system uses:
 
 - **Strands Agents SDK** for AI agent framework
-- **Claude 4 Sonnet** (via AWS Bedrock) for analysis
+- **Claude or GPT models** (via Ollama/OpenAI/Anthropic) for analysis
 - **Playwright** for browser automation  
 - **PostgreSQL** (asyncpg) for data storage
 - **Python 3.11+** with async/await throughout
@@ -109,7 +109,7 @@ async def extract_categories(
 
 ### Critical Must-Haves
 
-1. **AWS Bedrock Integration**: Use boto3 to call Claude via Bedrock, NOT Anthropic direct API
+1. **Ollama/OpenAI/Anthropic Integration**: Use boto3 to call Claude via Bedrock, NOT Anthropic direct API
 2. **Connection Pooling**: Use asyncpg.create_pool() for database
 3. **Hierarchy Handling**: Categories must preserve parent-child relationships
 4. **Blueprint Generation**: Create JSON templates for future fast extraction
@@ -172,14 +172,14 @@ async def initialize_browser(self):
     self.page = await self.browser.new_page()
 ```
 
-### LLM Integration (AWS Bedrock)
+### LLM Integration (Ollama/OpenAI/Anthropic)
 
 ```python
-import boto3
+import openai or anthropic
 import json
 
-bedrock = boto3.client(
-    'bedrock-runtime',
+bedrock = openai.AsyncOpenAI or anthropic.AsyncAnthropic(
+    'LLM provider client',
     region_name=config.aws_region
 )
 

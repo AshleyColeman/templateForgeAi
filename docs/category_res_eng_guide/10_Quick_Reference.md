@@ -41,13 +41,13 @@ python -m src.ai_agents.category_extractor.cli \
 
 ```bash
 # Required
-AWS_ACCESS_KEY_ID=your_key
-AWS_SECRET_ACCESS_KEY=your_secret
+OPENAI_API_KEY (if using OpenAI)=your_key
+ANTHROPIC_API_KEY (if using Anthropic)=your_secret
 DB_PASSWORD=your_db_password
 
 # Optional
-AWS_REGION=us-east-1
-MODEL_ID=us.anthropic.claude-sonnet-4-20250514-v1:0
+LLM_PROVIDER=ollama
+MODEL_ID=gemma3:1b (Ollama) or gpt-4o-mini (OpenAI)
 BROWSER_HEADLESS=true
 LOG_LEVEL=INFO
 ```
@@ -222,9 +222,10 @@ SELECT * FROM category_tree ORDER BY path;
 ### Troubleshooting Quick Fixes
 
 ```bash
-# AWS access denied
-aws configure
-aws bedrock list-foundation-models --region us-east-1
+# LLM provider configuration issue
+# For Ollama:
+ollama serve
+ollama list
 
 # Database connection failed
 psql -h localhost -U postgres -d product_scraper
@@ -248,7 +249,7 @@ python -m src.ai_agents.category_extractor.cli --url ... --no-headless
 
 | Error | Meaning | Fix |
 |-------|---------|-----|
-| `AccessDeniedException` | No Bedrock access | Enable model in AWS Console |
+| `LLM Connection Error` | Cannot connect to provider | Check Ollama running or API key valid |
 | `InvalidCatalogNameError` | Database doesn't exist | Create database |
 | `TimeoutError` | Page load timeout | Increase timeout or check network |
 | `ElementNotFoundError` | Selector invalid | Re-run analysis |

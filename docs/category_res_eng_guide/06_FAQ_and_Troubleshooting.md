@@ -10,15 +10,25 @@ A: The AI agent automatically discovers category structure without manual config
 
 **Q: How much does it cost to extract categories from one website?**
 
-A: Approximately $0.50-$2 per site, depending on:
-- Number of LLM calls (typically 3-5)
-- Use of vision API (screenshot analysis)
+A: **It depends on your LLM provider**:
+
+- **Ollama (local)**: $0.00 - Completely FREE
+- **OpenAI GPT-4o-mini**: $0.10-$0.30 per site
+- **OpenAI GPT-4o**: $0.50-$1.50 per site
+- **Anthropic Claude**: $1.00-$2.00 per site
+
+**After blueprint generation**: $0.00 for all providers (reuses blueprint, no LLM calls)
+
+**Cost factors**:
+- Number of LLM calls (typically 2-4)
+- Screenshot analysis (if using vision models)
 - Site complexity
 - Token usage
 
-Claude 4 Sonnet pricing (via Bedrock):
-- Input: $3 per 1M tokens
-- Output: $15 per 1M tokens
+**Pricing (2025)**:
+- OpenAI GPT-4o-mini: $0.15 input + $0.60 output per 1M tokens
+- Anthropic Claude: $3 input + $15 output per 1M tokens
+- Ollama: FREE (runs on your hardware)
 
 **Q: How long does extraction take?**
 
@@ -45,7 +55,7 @@ A: Yes! Once a blueprint is generated, you can use it for fast, non-AI extractio
 **Q: Why use Strands Agents instead of LangChain or other frameworks?**
 
 A: Strands Agents provides:
-- Native Amazon Bedrock integration
+- Native Ollama/OpenAI/Anthropic integration
 - Simpler code-first approach
 - Better observability
 - Production-ready features
@@ -80,37 +90,57 @@ A: Typically 90-95% accurate. The agent includes confidence scores. Manual revie
 
 ## Common Issues and Solutions
 
-### Issue 1: AWS Bedrock Access Denied
+### Issue 1: LLM Provider Connection Failed
 
 **Error**:
 ```
-botocore.exceptions.ClientError: An error occurred (AccessDeniedException) 
-when calling the InvokeModel operation: User is not authorized to perform: 
-bedrock:InvokeModel
+AnalysisError: Failed to connect to LLM provider
 ```
 
 **Solution**:
-1. Verify AWS credentials are configured:
+
+**For Ollama (default)**:
+1. Check if Ollama is running:
    ```bash
-   aws configure
-   aws sts get-caller-identity
+   curl http://localhost:11434/api/tags
    ```
 
-2. Enable model access in Bedrock console:
-   - Go to AWS Console → Bedrock → Model Access
-   - Request access to Claude 4 Sonnet
-   - Wait for approval (usually instant)
+2. If not running, start Ollama:
+   ```bash
+   ollama serve
+   ```
 
-3. Verify IAM permissions include:
-   ```json
-   {
-     "Effect": "Allow",
-     "Action": [
-       "bedrock:InvokeModel",
-       "bedrock:InvokeModelWithResponseStream"
-     ],
-     "Resource": "*"
-   }
+3. Verify model is downloaded:
+   ```bash
+   ollama list
+   # If gemma3:1b not listed:
+   ollama pull gemma3:1b
+   ```
+
+**For OpenAI**:
+1. Verify API key is set in `.env`:
+   ```bash
+   grep OPENAI_API_KEY .env
+   ```
+
+2. Test API key validity:
+   ```bash
+   curl https://api.openai.com/v1/models \
+     -H "Authorization: Bearer $OPENAI_API_KEY"
+   ```
+
+**For Anthropic**:
+1. Verify API key is set in `.env`:
+   ```bash
+   grep ANTHROPIC_API_KEY .env
+   ```
+
+2. Test API key validity:
+   ```bash
+   curl https://api.anthropic.com/v1/messages \
+     -H "x-api-key: $ANTHROPIC_API_KEY" \
+     -H "anthropic-version: 2023-06-01" \
+     -X POST -d '{"model":"claude-3-5-sonnet-20241022","messages":[{"role":"user","content":"test"}],"max_tokens":10}'
    ```
 
 ### Issue 2: Database Connection Failed

@@ -53,13 +53,13 @@ DB_NAME=product_scraper
 DB_USER=postgres
 DB_PASSWORD=your_password_here
 
-# AWS Bedrock Configuration
-AWS_REGION=us-east-1
-AWS_ACCESS_KEY_ID=your_aws_key
-AWS_SECRET_ACCESS_KEY=your_aws_secret
+# Ollama/OpenAI/Anthropic Configuration
+LLM_PROVIDER=ollama
+OPENAI_API_KEY (if using OpenAI)=your_aws_key
+ANTHROPIC_API_KEY (if using Anthropic)=your_aws_secret
 
 # Model Configuration
-MODEL_ID=us.anthropic.claude-sonnet-4-20250514-v1:0
+MODEL_ID=gemma3:1b (Ollama) or gpt-4o-mini (OpenAI)
 MODEL_TEMPERATURE=0.0
 MAX_TOKENS=4096
 
@@ -79,15 +79,15 @@ LOG_LEVEL=INFO
 LOG_FILE=logs/category_extractor.log
 ```
 
-### Step 1.4: AWS Bedrock Setup
+### Step 1.4: Ollama/OpenAI/Anthropic Setup
 
 ```bash
 # Configure AWS CLI
 aws configure
 
-# Enable Claude 4 Sonnet model access in Bedrock
+# Enable Claude or GPT models model access in Bedrock
 # Go to AWS Console → Bedrock → Model Access
-# Request access to: Claude 4 Sonnet
+# Request access to: Claude or GPT models
 
 # Verify access
 aws bedrock list-foundation-models --region us-east-1
@@ -120,7 +120,7 @@ class ExtractorConfig(BaseSettings):
     
     # Model
     model_id: str = Field(
-        default="us.anthropic.claude-sonnet-4-20250514-v1:0",
+        default="gemma3:1b (Ollama) or gpt-4o-mini (OpenAI)",
         env="MODEL_ID"
     )
     model_temperature: float = Field(default=0.0, env="MODEL_TEMPERATURE")
@@ -716,8 +716,8 @@ async def test_agent_initialization():
 
 ```bash
 # Set up environment
-export AWS_ACCESS_KEY_ID=your_key
-export AWS_SECRET_ACCESS_KEY=your_secret
+export OPENAI_API_KEY (if using OpenAI)=your_key
+export ANTHROPIC_API_KEY (if using Anthropic)=your_secret
 export DB_PASSWORD=your_db_password
 
 # Run extraction

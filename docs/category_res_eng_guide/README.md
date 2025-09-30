@@ -32,7 +32,7 @@ This directory contains comprehensive documentation for building an AI-powered c
 4. **[03_Implementation_Guide.md](./03_Implementation_Guide.md)**
    - Step-by-step setup instructions
    - Environment configuration
-   - AWS Bedrock setup
+   - Ollama/OpenAI/Anthropic setup
    - Core module implementation
    - CLI interface creation
    - First extraction walkthrough
@@ -106,7 +106,7 @@ This directory contains comprehensive documentation for building an AI-powered c
 
 - Python 3.11+
 - PostgreSQL database
-- AWS account with Bedrock access
+- LLM Provider: Ollama (free, local) OR OpenAI API key OR Anthropic API key
 - Poetry for dependency management
 
 ### Installation
@@ -119,7 +119,7 @@ cd /home/ashleycoleman/Projects/product_scraper
 mkdir -p src/ai_agents/category_extractor/{tools,utils,blueprints}
 
 # Install dependencies
-poetry add strands-agents playwright asyncpg pydantic click rich loguru anthropic
+poetry add strands-agents playwright asyncpg pydantic click rich loguru openai anthropic httpx
 
 # Install Playwright browsers
 poetry run playwright install chromium
@@ -133,8 +133,8 @@ cp .env.example .env
 
 ```bash
 # Set environment variables
-export AWS_ACCESS_KEY_ID=your_key
-export AWS_SECRET_ACCESS_KEY=your_secret
+export OPENAI_API_KEY (if using OpenAI)=your_key
+export ANTHROPIC_API_KEY (if using Anthropic)=your_secret
 export DB_PASSWORD=your_password
 
 # Run extraction
@@ -246,13 +246,13 @@ DB_NAME=product_scraper
 DB_USER=postgres
 DB_PASSWORD=your_password
 
-# AWS Bedrock
-AWS_REGION=us-east-1
-AWS_ACCESS_KEY_ID=your_key
-AWS_SECRET_ACCESS_KEY=your_secret
+# Ollama/OpenAI/Anthropic
+LLM_PROVIDER=ollama
+OPENAI_API_KEY (if using OpenAI)=your_key
+ANTHROPIC_API_KEY (if using Anthropic)=your_secret
 
 # Model
-MODEL_ID=us.anthropic.claude-sonnet-4-20250514-v1:0
+MODEL_ID=gemma3:1b (Ollama) or gpt-4o-mini (OpenAI)
 
 # Browser
 BROWSER_HEADLESS=true
@@ -296,7 +296,7 @@ See **06_FAQ_and_Troubleshooting.md** for detailed solutions.
 - **Strands Agents**: https://strandsagents.com/latest/
 - **Playwright Python**: https://playwright.dev/python/
 - **Claude API**: https://docs.anthropic.com/claude/
-- **Amazon Bedrock**: https://aws.amazon.com/bedrock/
+- **Ollama/OpenAI/Anthropic**: https://aws.amazon.com/bedrock/
 
 ## 🤝 Contributing
 
@@ -326,7 +326,7 @@ For questions or issues:
 After reviewing this documentation:
 
 1. Set up your development environment
-2. Configure AWS Bedrock access
+2. Configure Ollama/OpenAI/Anthropic access
 3. Run your first extraction
 4. Generate a blueprint
 5. Test with multiple retailers

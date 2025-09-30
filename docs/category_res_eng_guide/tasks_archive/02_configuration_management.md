@@ -64,8 +64,8 @@ class ExtractorConfig(BaseSettings):
     
     # Model Configuration
     model_id: str = Field(
-        default="us.anthropic.claude-sonnet-4-20250514-v1:0",
-        description="AWS Bedrock model ID"
+        default="gemma3:1b (Ollama) or gpt-4o-mini (OpenAI)",
+        description="Ollama/OpenAI/Anthropic model ID"
     )
     model_temperature: float = Field(
         default=0.0,
@@ -228,16 +228,16 @@ Ensure your `.env` file has all required variables:
 ```bash
 # Required
 DB_PASSWORD=your_actual_password
-AWS_ACCESS_KEY_ID=your_actual_key
-AWS_SECRET_ACCESS_KEY=your_actual_secret
+OPENAI_API_KEY (if using OpenAI)=your_actual_key
+ANTHROPIC_API_KEY (if using Anthropic)=your_actual_secret
 
 # Optional (defaults will be used if not set)
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=products
 DB_USER=postgres
-AWS_REGION=us-east-1
-MODEL_ID=us.anthropic.claude-sonnet-4-20250514-v1:0
+LLM_PROVIDER=ollama
+MODEL_ID=gemma3:1b (Ollama) or gpt-4o-mini (OpenAI)
 BROWSER_HEADLESS=true
 LOG_LEVEL=INFO
 ```
@@ -388,7 +388,7 @@ python
 >>> print(config.db_host)
 localhost
 >>> print(config.model_id)
-us.anthropic.claude-sonnet-4-20250514-v1:0
+gemma3:1b (Ollama) or gpt-4o-mini (OpenAI)
 >>> print(config.database_url)
 postgresql://postgres:***@localhost:5432/products
 >>> config.display_config()
@@ -461,7 +461,7 @@ cat .env  # Check format (KEY=value, no spaces around =)
 ### Issue: Validation errors
 **Solution**: Check required environment variables are set:
 ```bash
-grep -E "DB_PASSWORD|AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY" .env
+grep -E "DB_PASSWORD|OPENAI_API_KEY (if using OpenAI)|ANTHROPIC_API_KEY (if using Anthropic)" .env
 ```
 
 ### Issue: Type errors

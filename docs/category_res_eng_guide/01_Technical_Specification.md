@@ -57,8 +57,8 @@
 from strands import Agent, Tool
 from strands.tools import tool
 
-# Amazon Bedrock (default provider)
-# Model: Claude 4 Sonnet (us.anthropic.claude-sonnet-4-20250514-v1:0)
+# Ollama/OpenAI/Anthropic (default provider)
+# Model: Claude or GPT models (gemma3:1b (Ollama) or gpt-4o-mini (OpenAI))
 ```
 
 #### Browser Automation
@@ -122,7 +122,7 @@ class CategoryExtractionAgent:
         retailer_id: int,
         site_url: str,
         bedrock_region: str = "us-east-1",
-        model_id: str = "us.anthropic.claude-sonnet-4-20250514-v1:0",
+        model_id: str = "gemma3:1b (Ollama) or gpt-4o-mini (OpenAI)",
         headless: bool = True
     ):
         self.retailer_id = retailer_id

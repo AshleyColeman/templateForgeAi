@@ -47,12 +47,12 @@ class ExtractorConfig(BaseSettings):
     db_user: str = Field(default="postgres", env="DB_USER")
     db_password: str = Field(default="", env="DB_PASSWORD")
     
-    # AWS Bedrock
+    # Ollama/OpenAI/Anthropic
     aws_region: str = Field(default="us-east-1", env="AWS_REGION")
     
     # Model
     model_id: str = Field(
-        default="us.anthropic.claude-sonnet-4-20250514-v1:0",
+        default="gemma3:1b (Ollama) or gpt-4o-mini (OpenAI)",
         env="MODEL_ID"
     )
     

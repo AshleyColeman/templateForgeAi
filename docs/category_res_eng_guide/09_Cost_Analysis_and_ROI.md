@@ -6,28 +6,32 @@ This document provides a detailed financial analysis of the AI-powered category 
 
 ## Cost Breakdown: AI Agent Approach
 
-### 1. LLM Costs (AWS Bedrock - Claude 4 Sonnet)
+### 1. LLM Costs (Multi-Provider)
 
-**Pricing (as of 2025):**
+**Provider Options:**
+
+| Provider | Cost per Site | Setup | Notes |
+|----------|--------------|-------|-------|
+| **Ollama** | **$0.00** | Local install | FREE - Runs locally, no API costs |
+| **OpenAI GPT-4o-mini** | $0.10 - $0.30 | API key | Best speed/cost balance |
+| **OpenAI GPT-4o** | $0.50 - $1.50 | API key | Higher quality |
+| **Anthropic Claude** | $1.00 - $2.00 | API key | Highest quality |
+
+**Ollama Costs (Recommended for Testing):**
+- **Cost**: $0.00 (completely free)
+- **Requirements**: 8GB+ RAM, runs locally
+- **Models**: gemma3:1b, deepseek-r1:1.5b
+- **Speed**: Fast for local inference
+
+**OpenAI Costs (Best for Production):**
+- Input tokens: $0.15 per 1M tokens (gpt-4o-mini)
+- Output tokens: $0.60 per 1M tokens (gpt-4o-mini)
+- **Typical cost per site**: $0.10 - $0.30
+
+**Anthropic Costs (Highest Quality):**
 - Input tokens: $3.00 per 1M tokens
 - Output tokens: $15.00 per 1M tokens
-
-**Typical Extraction Costs:**
-
-| Component | Input Tokens | Output Tokens | Cost |
-|-----------|-------------|---------------|------|
-| Vision Analysis (Screenshot) | ~5,000 | ~1,500 | $0.04 |
-| HTML Analysis | ~3,000 | ~1,000 | $0.02 |
-| Category Extraction Planning | ~2,000 | ~1,000 | $0.02 |
-| Validation | ~4,000 | ~800 | $0.02 |
-| Blueprint Generation | ~3,000 | ~2,000 | $0.04 |
-| **Total per site** | **~17,000** | **~6,300** | **~$0.14** |
-
-**Actual Cost Range:**
-- **Simple site** (Wellness Warehouse): $0.10 - $0.20
-- **Medium complexity** (Faithful to Nature): $0.40 - $0.80
-- **Complex site** (Clicks): $1.00 - $2.00
-- **Average**: $0.50 - $1.00 per site
+- **Typical cost per site**: $1.00 - $2.00
 
 ### 2. Infrastructure Costs
 
@@ -105,12 +109,19 @@ This document provides a detailed financial analysis of the AI-powered category 
 - **Year 1 Total**: $3,500 + $3,125 + ($252 × 12) = $9,649
 - **Year 2+ Total**: $3,125 + ($252 × 12) = $6,149/year
 
-**AI Agent Approach:**
+**AI Agent Approach (using Ollama - FREE):**
 - Initial development: $3,600 (one-time)
-- LLM costs (initial): 10 × $0.75 = $7.50
+- LLM costs (initial): 10 × $0.00 = $0.00 (using Ollama)
 - Blueprint reuse (monthly): 10 × $0 = $0
 - Monthly operations: $190
-- **Year 1 Total**: $3,600 + $7.50 + ($190 × 12) = $5,888
+- **Year 1 Total**: $3,600 + $0 + ($190 × 12) = $5,880
+- **Year 2+ Total**: ($190 × 12) = $2,280/year
+
+**AI Agent Approach (using OpenAI - Low Cost):**
+- Initial development: $3,600 (one-time)
+- LLM costs (initial): 10 × $0.20 = $2.00
+- Monthly operations: $190
+- **Year 1 Total**: $3,600 + $2 + ($190 × 12) = $5,882
 - **Year 2+ Total**: ($190 × 12) = $2,280/year
 
 **Savings:**
@@ -322,7 +333,7 @@ Total 5-Year Cost:     $15,518
 
 ### 1. LLM Cost Volatility
 
-**Risk**: AWS Bedrock pricing could increase
+**Risk**: Ollama/OpenAI/Anthropic pricing could increase
 **Mitigation**: 
 - Use blueprints to minimize LLM usage
 - Multi-provider strategy (Anthropic direct, OpenAI)
@@ -332,7 +343,7 @@ Total 5-Year Cost:     $15,518
 
 ### 2. Model Availability
 
-**Risk**: Claude 4 Sonnet could be deprecated
+**Risk**: Claude or GPT models could be deprecated
 **Mitigation**:
 - Framework-agnostic design (Strands supports multiple models)
 - Fallback to GPT-4, Claude 3, etc.

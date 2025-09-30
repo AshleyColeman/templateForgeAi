@@ -9,14 +9,14 @@
 
 ## 📋 Objective
 
-Implement the `PageAnalyzerTool` that inspects a retailer homepage or category landing page, captures screenshots/HTML, sends the context to Claude 4 Sonnet (via AWS Bedrock) for analysis, and returns structured insights that later tools consume (navigation pattern, selectors, interactions, confidence score).
+Implement the `PageAnalyzerTool` that inspects a retailer homepage or category landing page, captures screenshots/HTML, sends the context to Claude or GPT models (via Ollama/OpenAI/Anthropic) for analysis, and returns structured insights that later tools consume (navigation pattern, selectors, interactions, confidence score).
 
 ## 🎯 Success Criteria
 
 - [ ] `src/ai_agents/category_extractor/tools/page_analyzer.py` created with `PageAnalyzerTool`
 - [ ] Tool exposes `async analyze(url: str, force_refresh: bool = False) -> Dict[str, Any]`
 - [ ] Captures full-page screenshot and simplified HTML
-- [ ] Invokes AWS Bedrock Claude 4 vision endpoint with screenshot + HTML context
+- [ ] Invokes Ollama/OpenAI/Anthropic Claude 4 vision endpoint with screenshot + HTML context
 - [ ] Returns dict containing `navigation_type`, `selectors`, `interactions`, `confidence`, and `notes`
 - [ ] Handles cookie banners / popups via helper method
 - [ ] Retries transient failures using `tenacity`
@@ -59,10 +59,10 @@ class PageAnalyzerTool:
     def bedrock(self):
         """Lazy-load Bedrock runtime client."""
         if self._bedrock is None:
-            import boto3
+            import openai or anthropic
 
-            self._bedrock = boto3.client(
-                "bedrock-runtime",
+            self._bedrock = openai.AsyncOpenAI or anthropic.AsyncAnthropic(
+                "LLM provider client",
                 region_name=self.config.aws_region,
                 config=BotoConfig(retries={"max_attempts": self.config.max_retries}),
             )
