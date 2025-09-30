@@ -11,6 +11,7 @@ class DummyAgent:
     def __init__(self) -> None:
         self.page = None
         self.state = {}
+        self.retailer_id = 999  # Mock retailer ID for testing
 
 
 @pytest.mark.asyncio

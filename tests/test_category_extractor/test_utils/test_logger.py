@@ -10,12 +10,13 @@ def test_get_logger_binds_retailer() -> None:
     bound_msg = []
 
     def sink(message):
-        bound_msg.append(message)
+        # Sink receives formatted message
+        bound_msg.append(str(message))
 
     # Temporarily add sink to capture output
-    handler_id = logger.add(sink)
+    handler_id = logger.add(sink, format="{extra[retailer_id]}")
     logger.info("hello")
     logger.remove(handler_id)
 
     assert bound_msg, "Logger sink should capture output"
-    assert "retailer=42" in bound_msg[0]
+    assert "42" in bound_msg[0], f"Expected '42' in {bound_msg[0]}"

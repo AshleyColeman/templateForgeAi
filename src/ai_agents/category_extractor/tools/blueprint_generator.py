@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -17,7 +17,7 @@ class BlueprintMetadata(BaseModel):
     site_url: str
     retailer_id: int
     retailer_name: Optional[str] = None
-    generated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    generated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'))
     generated_by: str = "ai_category_extractor"
     agent_version: str = "0.1.0"
     confidence_score: float
@@ -104,7 +104,7 @@ class BlueprintGeneratorTool:
     def _write_blueprint(self, blueprint: BlueprintModel) -> Path:
         output_dir = Path(self.config.blueprint_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
-        filename = f"retailer_{self.agent.retailer_id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+        filename = f"retailer_{self.agent.retailer_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
         path = output_dir / filename
         try:
             with path.open("w", encoding="utf-8") as handle:

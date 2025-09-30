@@ -283,7 +283,7 @@ BROWSER_TIMEOUT=60000
 
 | Issue | Solution |
 |-------|----------|
-| AWS Access Denied | Enable Bedrock model access in console |
+| LLM Provider Error | Check Ollama running or API key valid |
 | Database Connection Failed | Verify PostgreSQL running and credentials |
 | Browser Not Found | Run `playwright install chromium` |
 | Bot Detection | Increase timeout, use stealth mode |
@@ -296,7 +296,9 @@ See **06_FAQ_and_Troubleshooting.md** for detailed solutions.
 - **Strands Agents**: https://strandsagents.com/latest/
 - **Playwright Python**: https://playwright.dev/python/
 - **Claude API**: https://docs.anthropic.com/claude/
-- **Ollama/OpenAI/Anthropic**: https://aws.amazon.com/bedrock/
+- **Ollama**: https://ollama.com/
+- **OpenAI**: https://platform.openai.com/docs
+- **Anthropic**: https://docs.anthropic.com/
 
 ## 🤝 Contributing
 

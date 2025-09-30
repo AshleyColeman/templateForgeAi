@@ -14,7 +14,9 @@ REQUIRED_PACKAGES = {
     "click": "click",
     "rich": "rich",
     "loguru": "loguru",
+    "openai": "openai",
     "anthropic": "anthropic",
+    "httpx": "httpx",
     "tenacity": "tenacity",
 }
 

@@ -12,6 +12,7 @@ class DummyAgent:
     def __init__(self) -> None:
         self.page = None
         self.site_url = "https://example.com"
+        self.retailer_id = 999  # Mock retailer ID for testing
         self.config = type("Cfg", (), {"browser_timeout": 1000})
         self.state = {
             "analysis": {

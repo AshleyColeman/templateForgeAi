@@ -48,10 +48,18 @@ This document provides a step-by-step plan for migrating from your current TypeS
 ### 2. Environment Preparation
 
 ```bash
-# 1. Ollama/OpenAI/Anthropic Setup
-aws configure
-aws bedrock list-foundation-models --region us-east-1
-# Enable Claude or GPT models in console
+# 1. LLM Provider Setup (choose one)
+
+# Option A: Ollama (FREE)
+curl -fsSL https://ollama.com/install.sh | sh
+ollama pull gemma3:1b
+ollama serve
+
+# Option B: OpenAI
+# Get API key from platform.openai.com
+
+# Option C: Anthropic  
+# Get API key from console.anthropic.com
 
 # 2. Python Environment
 poetry init

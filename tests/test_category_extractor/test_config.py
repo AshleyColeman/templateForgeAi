@@ -13,12 +13,14 @@ from src.ai_agents.category_extractor.config import (
 
 _SENSITIVE_ENV_VARS: Iterable[str] = (
     "DB_PASSWORD",
-    "AWS_ACCESS_KEY_ID",
-    "AWS_SECRET_ACCESS_KEY",
+    "OPENAI_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "OPENROUTER_API_KEY",
     "DB_HOST",
     "DB_PORT",
     "DB_NAME",
     "DB_USER",
+    "LLM_PROVIDER",
 )
 
 
@@ -36,8 +38,7 @@ def reset_config(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_get_config_returns_singleton(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DB_PASSWORD", "testpass")
-    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "abc")
-    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "xyz")
+    monkeypatch.setenv("LLM_PROVIDER", "ollama")
 
     config_a = get_config()
     config_b = get_config()
@@ -47,17 +48,17 @@ def test_get_config_returns_singleton(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_reload_config_creates_new_instance(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DB_PASSWORD", "pass1")
-    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "key1")
-    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "secret1")
+    monkeypatch.setenv("LLM_PROVIDER", "ollama")
     first = reload_config()
 
     monkeypatch.setenv("DB_PASSWORD", "pass2")
-    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "key2")
-    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "secret2")
+    monkeypatch.setenv("LLM_PROVIDER", "openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
     second = reload_config()
 
     assert first is not second
     assert second.db_password == "pass2"
+    assert second.llm_provider == "openai"
 
 
 def test_database_url_format(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -66,30 +67,37 @@ def test_database_url_format(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DB_NAME", "prod")
     monkeypatch.setenv("DB_USER", "user")
     monkeypatch.setenv("DB_PASSWORD", "pwd")
-    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "key")
-    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "secret")
+    monkeypatch.setenv("LLM_PROVIDER", "ollama")
 
     config = reload_config()
     assert config.database_url == "postgresql://user:pwd@db-host:6543/prod"
 
 
-def test_validate_config_requires_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("DB_PASSWORD", "pwd")
+def test_validate_config_requires_credentials(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # Test that OpenAI provider requires API key
+    # Create a temporary .env file without API keys
+    temp_env = tmp_path / ".env"
+    temp_env.write_text("DB_PASSWORD=pwd\nLLM_PROVIDER=openai\n")
+    
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setattr("src.ai_agents.category_extractor.config._config", None)
 
     config = reload_config()
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="OPENAI_API_KEY"):
         config.validate_config()
 
 
 def test_display_config_masks_sensitive_values(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DB_PASSWORD", "pwd")
-    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "key")
-    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "secret")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test123")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test456")
+    monkeypatch.setenv("LLM_PROVIDER", "openai")
 
     config = reload_config()
     displayed = config.display_config()
 
     assert displayed["db_password"] == "***MASKED***"
-    assert displayed["aws_access_key_id"] == "***MASKED***"
-    assert displayed["aws_secret_access_key"] == "***MASKED***"
+    assert displayed["openai_api_key"] == "***MASKED***"
+    assert displayed["anthropic_api_key"] == "***MASKED***"

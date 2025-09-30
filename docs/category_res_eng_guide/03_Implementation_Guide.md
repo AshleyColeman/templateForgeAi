@@ -55,8 +55,8 @@ DB_PASSWORD=your_password_here
 
 # Ollama/OpenAI/Anthropic Configuration
 LLM_PROVIDER=ollama
-OPENAI_API_KEY (if using OpenAI)=your_aws_key
-ANTHROPIC_API_KEY (if using Anthropic)=your_aws_secret
+OPENAI_API_KEY (if using OpenAI)=sk-your_openai_key
+ANTHROPIC_API_KEY (if using Anthropic)=sk-ant-your_anthropic_key
 
 # Model Configuration
 MODEL_ID=gemma3:1b (Ollama) or gpt-4o-mini (OpenAI)
@@ -79,18 +79,35 @@ LOG_LEVEL=INFO
 LOG_FILE=logs/category_extractor.log
 ```
 
-### Step 1.4: Ollama/OpenAI/Anthropic Setup
+### Step 1.4: LLM Provider Setup
 
+**Option A: Ollama (FREE, Recommended for Testing)**
 ```bash
-# Configure AWS CLI
-aws configure
+# Install Ollama
+curl -fsSL https://ollama.com/install.sh | sh
 
-# Enable Claude or GPT models model access in Bedrock
-# Go to AWS Console → Bedrock → Model Access
-# Request access to: Claude or GPT models
+# Pull a model
+ollama pull gemma3:1b
 
-# Verify access
-aws bedrock list-foundation-models --region us-east-1
+# Start Ollama server
+ollama serve
+
+# Verify
+ollama list
+```
+
+**Option B: OpenAI (Cloud, Low Cost)**
+```bash
+# Get API key from: https://platform.openai.com/api-keys
+# Add to .env:
+# OPENAI_API_KEY=sk-...
+```
+
+**Option C: Anthropic (Cloud, High Quality)**
+```bash
+# Get API key from: https://console.anthropic.com/
+# Add to .env:
+# ANTHROPIC_API_KEY=sk-ant-...
 ```
 
 ## Phase 2: Core Implementation
@@ -404,12 +421,9 @@ class CategoryExtractionAgent:
         self.headless = headless if headless is not None else self.config.browser_headless
         
         # Initialize Strands Agent
-        self.agent = Agent(
-            model_provider="bedrock",
-            model_id=self.config.model_id,
-            region=self.config.aws_region,
-            system_prompt=self._get_system_prompt()
-        )
+        # Agent initialization handled by _create_strands_agent()
+        # Supports: Ollama, OpenAI, Anthropic, OpenRouter
+        self.agent = self._create_strands_agent()
         
         # Browser instances
         self.playwright = None

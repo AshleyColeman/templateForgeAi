@@ -11,6 +11,8 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from .agent import CategoryExtractionAgent
+from .blueprints.executor import execute_blueprint
+from .blueprints.loader import load_blueprint
 from .errors import ExtractorError
 
 console = Console()
