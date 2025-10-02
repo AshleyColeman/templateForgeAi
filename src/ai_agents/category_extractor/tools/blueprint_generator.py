@@ -34,6 +34,9 @@ class BlueprintModel(BaseModel):
     extraction_stats: Dict[str, Any]
     edge_cases: List[Dict[str, Any]] = Field(default_factory=list)
     notes: List[str] = Field(default_factory=list)
+    evidence: Dict[str, Any] = Field(default_factory=dict)  # Sample categories found
+    link_filters: Dict[str, Any] = Field(default_factory=dict)  # Include/exclude patterns
+    extraction_method: str = "ai"  # "ai" or "fallback"
 
 
 class BlueprintGeneratorTool:
@@ -67,6 +70,9 @@ class BlueprintGeneratorTool:
             validation_rules=self._build_validation_rules(categories, strategy),
             extraction_stats=self._build_stats(categories),
             notes=self._normalize_notes(strategy.get("notes", [])),
+            evidence=self._build_evidence(categories, strategy),
+            link_filters=strategy.get("link_filters", {}),
+            extraction_method=self.agent.state.get("extraction_method", "ai"),
         )
 
         path = self._write_blueprint(blueprint)
@@ -81,6 +87,21 @@ class BlueprintGeneratorTool:
             return [notes]
         else:
             return []
+
+    def _build_evidence(self, categories: List[Dict[str, Any]], strategy: Dict[str, Any]) -> Dict[str, Any]:
+        """Build evidence section showing what was actually found."""
+        # Get sample category names (first 10)
+        sample_names = [cat.get("name", "") for cat in categories[:10] if cat.get("name")]
+        
+        # Get sample URLs
+        sample_urls = [cat.get("url", "") for cat in categories[:5] if cat.get("url")]
+        
+        return {
+            "sample_categories": sample_names,
+            "sample_urls": sample_urls,
+            "total_found": len(categories),
+            "ai_evidence": strategy.get("evidence", {}),
+        }
 
     def _build_strategy_section(self, strategy: Dict[str, Any]) -> Dict[str, Any]:
         return {

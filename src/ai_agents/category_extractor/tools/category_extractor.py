@@ -51,6 +51,10 @@ class CategoryExtractorTool:
         if len(categories) == 0:
             self.logger.warning("No categories found with navigation_type={}, trying universal fallback...", navigation_type)
             categories = await self._fallback_extraction(page, strategy)
+            if len(categories) > 0:
+                self.agent.state["extraction_method"] = "fallback"
+        else:
+            self.agent.state["extraction_method"] = "ai"
 
         processed = self._post_process(categories, target_url)
         validate_hierarchy(processed)
