@@ -1,0 +1,86 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "site_url": "https://www.wellnesswarehouse.com/",
+    "retailer_id": 99,
+    "retailer_name": "Wellness Warehouse",
+    "generated_at": "2025-10-02T13:56:06.719986Z",
+    "generated_by": "ai_category_extractor",
+    "agent_version": "0.1.0",
+    "confidence_score": 0.8
+  },
+  "extraction_strategy": {
+    "navigation_type": "top_nav",
+    "complexity": "unknown",
+    "requires_javascript": true,
+    "dynamic_loading": {}
+  },
+  "selectors": {
+    "nav_container": ".header .page-header",
+    "category_links": ".header .header-cms-block-links a",
+    "top_level_items": ".header .header-cms-block-links li",
+    "flyout_panel": null,
+    "subcategory_list": null
+  },
+  "interactions": [
+    {
+      "type": "hover|click",
+      "target": ".header .header-cms-block-links a",
+      "wait_for": ".header .header-cms-block-links li to appear or null"
+    }
+  ],
+  "validation_rules": {
+    "min_categories": 1,
+    "max_categories": 4,
+    "max_depth": 0,
+    "required_fields": [
+      "name",
+      "url"
+    ],
+    "url_pattern": ""
+  },
+  "extraction_stats": {
+    "total_categories": 2,
+    "max_depth": 0,
+    "categories_by_depth": {
+      "0": 2
+    }
+  },
+  "edge_cases": [],
+  "notes": [
+    "The top navigation bar is a likely candidate for product taxonomy. The presence of 'Stores' and 'Rewards' suggests a hierarchical structure."
+  ],
+  "evidence": {
+    "sample_categories": [
+      "STORES",
+      "Live Life Well Rewards"
+    ],
+    "sample_urls": [
+      "https://www.wellnesswarehouse.com/store-locator",
+      "https://www.wellnesswarehouse.com/loyalty-page"
+    ],
+    "total_found": 2,
+    "ai_evidence": {
+      "sample_text": [
+        "STORES",
+        "Live Life Well Rewards",
+        "REWARDS",
+        "Stores"
+      ],
+      "counts": {
+        "category_links": 0,
+        "top_level_items": 0
+      }
+    }
+  },
+  "link_filters": {
+    "include_href_patterns": [
+      "/store-locator",
+      "/c/"
+    ],
+    "exclude_href_patterns": [
+      "account|login|register|cart|wishlist|help|faq|contact|checkout|search|language|currency"
+    ]
+  },
+  "extraction_method": "ai"
+}

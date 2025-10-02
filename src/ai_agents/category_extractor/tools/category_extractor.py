@@ -131,21 +131,33 @@ class CategoryExtractorTool:
             'store locator', 'stores', 'find a store', 'rewards', 'loyalty',
             'track order', 'my orders', 'sign up', 'subscribe',
             'my discounts', 'my wishlist', 'previously bought', 'my shop',
-            'order history', 'my profile', 'settings', 'preferences'
+            'order history', 'my profile', 'settings', 'preferences',
+            'live life well', 'find store', 'store finder'
         ]
         
         # Also check for generic single-word categories that are likely wrong
         generic_words = ['menu', 'home', 'shop', 'browse', 'stores', 'rewards', 'account']
         
+        # Check for URLs that indicate non-product pages
+        noise_url_patterns = [
+            '/store-locator', '/stores', '/find-store', '/store-finder',
+            '/loyalty', '/rewards', '/account', '/login', '/register',
+            '/my-', '/customer/', '/user/'
+        ]
+        
         noise_count = 0
         for cat in categories[:10]:  # Check first 10
             name_lower = cat.get('name', '').lower().strip()
+            url_lower = cat.get('url', '').lower()
             
-            # Check noise keywords
+            # Check noise keywords in name
             if any(keyword in name_lower for keyword in noise_keywords):
                 noise_count += 1
             # Check if it's a single generic word
             elif name_lower in generic_words:
+                noise_count += 1
+            # Check URL patterns
+            elif any(pattern in url_lower for pattern in noise_url_patterns):
                 noise_count += 1
         
         # If more than 40% look like noise, it's probably wrong (lowered from 50%)

@@ -1,0 +1,98 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "site_url": "https://clicks.co.za/products/c/OH1",
+    "retailer_id": 1,
+    "retailer_name": "Clicks",
+    "generated_at": "2025-10-02T14:02:01.597427Z",
+    "generated_by": "ai_category_extractor",
+    "agent_version": "0.1.0",
+    "confidence_score": 0.8
+  },
+  "extraction_strategy": {
+    "navigation_type": "top_nav|sidebar|dropdown|accordion|hover_menu|filter_sidebar|breadcrumbs|unknown",
+    "complexity": "unknown",
+    "requires_javascript": true,
+    "dynamic_loading": {}
+  },
+  "selectors": {
+    "nav_container": ".nav-list .nav-list-seven",
+    "category_links": ".La.parent a",
+    "top_level_items": ".La.parent a",
+    "flyout_panel": null,
+    "subcategory_list": null
+  },
+  "interactions": [
+    {
+      "type": "hover|click",
+      "target": ".nav-list .nav-list-seven",
+      "wait_for": "selector to appear or null"
+    }
+  ],
+  "validation_rules": {
+    "min_categories": 148,
+    "max_categories": 1186,
+    "max_depth": 0,
+    "required_fields": [
+      "name",
+      "url"
+    ],
+    "url_pattern": ""
+  },
+  "extraction_stats": {
+    "total_categories": 593,
+    "max_depth": 0,
+    "categories_by_depth": {
+      "0": 593
+    }
+  },
+  "edge_cases": [],
+  "notes": [
+    "The top navigation structure is based on the presence of 'Shop' and subcategories within it. The confidence score reflects the likelihood of this being a primary taxonomy model."
+  ],
+  "evidence": {
+    "sample_categories": [
+      "Shop",
+      "Health & Pharmacy",
+      "Visit All Health & Pharmacy",
+      "Health & Pharmacy Promotions",
+      "Health Brands A-Z",
+      "Order OTC Medication",
+      "Assisted Living Products",
+      "Visit All Assisted Living Products",
+      "Mobility",
+      "Bedding"
+    ],
+    "sample_urls": [
+      "https://clicks.co.za/products/c/OH1",
+      "javascript:void(0);",
+      "https://clicks.co.za/health-and-pharmacy/c/OH10005?clppage=sc",
+      "https://clicks.co.za/health-and-pharmacy/c/OH10005?q=%3Arelevance%3ApromoStickerplp%3A2%3ApromoStickerplp%3A1%3ApromoStickerplp%3A7%3ApromoStickerplp%3A3%3ApromoStickerplp%3A10%3ApromoStickerplp%3A5%3ApromoStickerplp%3A4&text=&count=20",
+      "https://clicks.co.za/all-brands?cat=OH10005"
+    ],
+    "total_found": 593,
+    "ai_evidence": {
+      "sample_text": [
+        "Shop",
+        "Health &amp; Pharmacy",
+        "Beauty",
+        "Mobility",
+        "Bedding",
+        "Bathroom Safety",
+        "Daily Living Aids"
+      ],
+      "counts": {
+        "category_links": 1
+      }
+    }
+  },
+  "link_filters": {
+    "include_href_patterns": [
+      "/products/c/OH1"
+    ],
+    "exclude_href_patterns": [
+      "account|login|register|cart|wishlist|help|faq|contact|checkout|search|language|currency"
+    ]
+  },
+  "extraction_method": "ai"
+}
