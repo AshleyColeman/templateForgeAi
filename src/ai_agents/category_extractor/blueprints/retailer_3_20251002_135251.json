@@ -1,0 +1,113 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "site_url": "https://www.faithful-to-nature.co.za",
+    "retailer_id": 3,
+    "retailer_name": "faithful-to-nature",
+    "generated_at": "2025-10-02T13:52:51.776102Z",
+    "generated_by": "ai_category_extractor",
+    "agent_version": "0.1.0",
+    "confidence_score": 0.8
+  },
+  "extraction_strategy": {
+    "navigation_type": "top_nav|sidebar|dropdown|accordion|hover_menu|filter_sidebar|breadcrumbs|unknown",
+    "complexity": "unknown",
+    "requires_javascript": true,
+    "dynamic_loading": {}
+  },
+  "selectors": {
+    "nav_container": ".navbar .navbar-default",
+    "category_links": "#nav li a",
+    "top_level_items": "#nav li.first a",
+    "flyout_panel": null,
+    "subcategory_list": null
+  },
+  "interactions": [
+    {
+      "type": "hover|click",
+      "target": ".dropdown-toggle",
+      "wait_for": "ul#account-menu to appear or null"
+    }
+  ],
+  "validation_rules": {
+    "min_categories": 12,
+    "max_categories": 100,
+    "max_depth": 0,
+    "required_fields": [
+      "name",
+      "url"
+    ],
+    "url_pattern": ""
+  },
+  "extraction_stats": {
+    "total_categories": 50,
+    "max_depth": 0,
+    "categories_by_depth": {
+      "0": 50
+    }
+  },
+  "edge_cases": [],
+  "notes": [
+    "The top navigation bar is a primary indicator of product taxonomy on this site. The presence of 'My Account', 'My Discounts', and 'My Wishlist' suggests a strong focus on user accounts and personalized shopping experiences. The use of dropdown menus for subcategories further supports the hierarchical structure."
+  ],
+  "evidence": {
+    "sample_categories": [
+      "Baking & Cooking",
+      "Baking",
+      "Condiments & Sauces",
+      "Canned & Packaged Food",
+      "Herbs, Spices & Seasoning",
+      "Oil & Vinegar",
+      "Pasta, Rice & Grains",
+      "Sugars & Sweeteners",
+      "Breakfast Cereals",
+      "Cereals"
+    ],
+    "sample_urls": [
+      "https://www.faithful-to-nature.co.za/food/baking-and-cooking",
+      "https://www.faithful-to-nature.co.za/food/baking-and-cooking/baking",
+      "https://www.faithful-to-nature.co.za/food/baking-and-cooking/condiments-and-sauces",
+      "https://www.faithful-to-nature.co.za/food/baking-and-cooking/canned-packaged-food",
+      "https://www.faithful-to-nature.co.za/food/baking-and-cooking/herbs-spices-seasoning"
+    ],
+    "total_found": 50,
+    "ai_evidence": {
+      "sample_text": [
+        "My Account",
+        "Log In",
+        "Register",
+        "Previously Bought",
+        "My Discounts",
+        "My Wishlist"
+      ],
+      "counts": {
+        "category_links": 0,
+        "top_level_items": 1
+      }
+    }
+  },
+  "link_filters": {
+    "include_href_patterns": [
+      "/customer/account/",
+      "/my-shop/products/",
+      "/my-shop/discounts/",
+      "/wishlist/"
+    ],
+    "exclude_href_patterns": [
+      "account",
+      "login",
+      "register",
+      "cart",
+      "basket",
+      "wishlist",
+      "help",
+      "faq",
+      "contact",
+      "checkout",
+      "search",
+      "language",
+      "currency"
+    ]
+  },
+  "extraction_method": "fallback"
+}

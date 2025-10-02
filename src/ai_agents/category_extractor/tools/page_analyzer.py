@@ -43,6 +43,13 @@ class PageAnalyzerTool:
             await page.wait_for_timeout(2000)
 
         await self._handle_cookie_consent(page)
+        
+        # Try to reveal hidden navigation (hamburger menus)
+        await self._reveal_hidden_navigation(page)
+        
+        # Try to reveal mega menus by hovering over top-level nav items
+        await self._reveal_mega_menus(page)
+        
         screenshot_b64 = await self._capture_screenshot(page)
         html_snippet = await self._simplified_html(page)
 
@@ -63,6 +70,64 @@ class PageAnalyzerTool:
                     await button.click()
                     await page.wait_for_timeout(500)
                     self.logger.debug("Accepted cookies via {}", selector)
+                    return
+            except Exception:  # noqa: BLE001
+                continue
+    
+    async def _reveal_hidden_navigation(self, page) -> None:
+        """Click hamburger menu or nav toggles to reveal hidden categories."""
+        reveal_selectors = [
+            "button[aria-label*='menu' i]",
+            "button[aria-label*='navigation' i]",
+            ".hamburger",
+            ".menu-toggle",
+            "[class*='menu-button']",
+            "[class*='nav-toggle']",
+            "button:has-text('Menu')",
+            "button:has-text('☰')",
+        ]
+        
+        for selector in reveal_selectors:
+            try:
+                button = await page.query_selector(selector)
+                if button:
+                    is_visible = await button.is_visible()
+                    if is_visible:
+                        await button.click()
+                        await page.wait_for_timeout(1000)
+                        self.logger.info("Revealed hidden navigation via {}", selector)
+                        return
+            except Exception:  # noqa: BLE001
+                continue
+    
+    async def _reveal_mega_menus(self, page) -> None:
+        """Hover over top-level nav items to reveal mega menus."""
+        # Common selectors for top-level navigation items
+        nav_selectors = [
+            "nav a",
+            "header nav a",
+            ".navbar a",
+            ".navigation a",
+            "[role='navigation'] a",
+            ".nav-item",
+            ".menu-item",
+        ]
+        
+        for selector in nav_selectors:
+            try:
+                nav_items = await page.query_selector_all(selector)
+                if len(nav_items) > 3 and len(nav_items) < 20:  # Reasonable number of top-level items
+                    self.logger.info("Found {} top-level nav items, hovering to reveal mega menus...", len(nav_items))
+                    
+                    # Hover over each top-level item to reveal submenus
+                    for item in nav_items[:10]:  # Limit to first 10
+                        try:
+                            await item.hover()
+                            await page.wait_for_timeout(300)  # Short wait for menu to appear
+                        except:  # noqa: BLE001
+                            continue
+                    
+                    self.logger.info("Hovered over nav items to reveal mega menus")
                     return
             except Exception:  # noqa: BLE001
                 continue

@@ -4,7 +4,7 @@
     "site_url": "https://www.dischem.co.za/shop-by-department",
     "retailer_id": 2,
     "retailer_name": "Dischem",
-    "generated_at": "2025-10-02T13:19:21.205252Z",
+    "generated_at": "2025-10-02T13:42:25.018670Z",
     "generated_by": "ai_category_extractor",
     "agent_version": "0.1.0",
     "confidence_score": 0.8
@@ -26,7 +26,7 @@
     {
       "type": "hover|click",
       "target": ".header .content-wrapper",
-      "wait_for": "nav to appear or null"
+      "wait_for": "nav_container to appear or null"
     }
   ],
   "validation_rules": {
@@ -48,7 +48,7 @@
   },
   "edge_cases": [],
   "notes": [
-    "The provided HTML snippet suggests a top-level navigation structure using the header elements. The presence of 'Shop by' and 'Browse' links indicates a hierarchical product organization. However, further analysis is required to confirm the exact taxonomy structure."
+    "The provided HTML snippet suggests a top-level navigation structure based on the header content and links. The presence of 'Shop by' and 'Browse' options indicates a hierarchical product organization. Further analysis is needed to confirm the exact taxonomy structure."
   ],
   "evidence": {
     "sample_categories": [
@@ -90,18 +90,7 @@
       "/c/"
     ],
     "exclude_href_patterns": [
-      "account",
-      "login",
-      "register",
-      "cart",
-      "wishlist",
-      "help",
-      "faq",
-      "contact",
-      "checkout",
-      "search",
-      "language",
-      "currency"
+      "account|login|register|cart|wishlist|help|faq|contact|checkout|search|language|currency"
     ]
   },
   "extraction_method": "fallback"

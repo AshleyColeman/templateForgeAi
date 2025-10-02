@@ -53,7 +53,7 @@ class CategoryExtractorTool:
         if len(categories) == 0:
             self.logger.warning("No categories found with navigation_type={}, trying universal fallback...", navigation_type)
             needs_fallback = True
-        elif len(categories) < 5:
+        elif len(categories) < 10:
             # Very few categories - might be wrong (menu buttons, not categories)
             self.logger.warning("Only {} categories found, seems suspicious, trying fallback...", len(categories))
             needs_fallback = True
@@ -75,24 +75,67 @@ class CategoryExtractorTool:
         else:
             self.agent.state["extraction_method"] = "ai"
 
+        # Detect URL patterns for validation
+        url_pattern = self._detect_url_pattern(categories)
+        if url_pattern:
+            self.logger.info("Detected URL pattern: {}", url_pattern)
+            self.agent.state["url_pattern"] = url_pattern
+        
         processed = self._post_process(categories, target_url)
         validate_hierarchy(processed)
         self.agent.state["categories_found"] = len(processed)
         self.agent.state["categories"] = processed
         return {"categories": processed, "total": len(processed), "navigation_type": navigation_type}
 
+    def _detect_url_pattern(self, categories: List[Category]) -> Optional[str]:
+        """Detect common URL pattern from extracted categories."""
+        from collections import Counter
+        from urllib.parse import urlparse
+        
+        if len(categories) < 3:
+            return None
+        
+        patterns = []
+        for cat in categories[:20]:  # Sample first 20
+            url = cat.get('url', '')
+            if not url or url.startswith('javascript:'):
+                continue
+            
+            try:
+                path = urlparse(url).path
+                parts = [p for p in path.split('/') if p]
+                
+                # Create pattern by keeping first N parts
+                if len(parts) >= 2:
+                    pattern = '/' + '/'.join(parts[:-1]) + '/{category}'
+                    patterns.append(pattern)
+            except:  # noqa: BLE001
+                continue
+        
+        if not patterns:
+            return None
+        
+        # Find most common pattern
+        common = Counter(patterns).most_common(1)
+        if common and common[0][1] >= 3:  # At least 3 URLs match
+            return common[0][0]
+        
+        return None
+
     def _looks_like_noise(self, categories: List[Category]) -> bool:
         """Check if extracted categories look like navigation noise."""
         noise_keywords = [
-            'sign in', 'login', 'register', 'cart', 'basket', 'wishlist',
-            'account', 'checkout', 'search', 'help', 'contact', 'about',
+            'sign in', 'login', 'log in', 'register', 'cart', 'basket', 'wishlist',
+            'account', 'my account', 'checkout', 'search', 'help', 'contact', 'about',
             'skip to', 'menu', 'close', 'open', 'toggle', 'show', 'hide',
             'store locator', 'stores', 'find a store', 'rewards', 'loyalty',
-            'track order', 'my orders', 'my account', 'sign up', 'subscribe'
+            'track order', 'my orders', 'sign up', 'subscribe',
+            'my discounts', 'my wishlist', 'previously bought', 'my shop',
+            'order history', 'my profile', 'settings', 'preferences'
         ]
         
         # Also check for generic single-word categories that are likely wrong
-        generic_words = ['menu', 'home', 'shop', 'browse', 'stores', 'rewards']
+        generic_words = ['menu', 'home', 'shop', 'browse', 'stores', 'rewards', 'account']
         
         noise_count = 0
         for cat in categories[:10]:  # Check first 10
@@ -105,8 +148,8 @@ class CategoryExtractorTool:
             elif name_lower in generic_words:
                 noise_count += 1
         
-        # If more than 50% look like noise, it's probably wrong
-        return noise_count > len(categories[:10]) * 0.5
+        # If more than 40% look like noise, it's probably wrong (lowered from 50%)
+        return noise_count > len(categories[:10]) * 0.4
 
     def _require_page(self) -> Page:
         if not self.agent.page:
