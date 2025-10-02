@@ -42,10 +42,15 @@ class CategoryExtractorTool:
 
         if navigation_type == "hover_menu":
             categories = await self._extract_hover_menu(page, strategy)
-        elif navigation_type in {"sidebar", "accordion"}:
+        elif navigation_type in {"sidebar", "accordion", "filter_sidebar"}:
             categories = await self._extract_click_navigation(page, strategy)
         else:
             categories = await self._extract_generic_links(page, strategy)
+
+        # Universal fallback: If no categories found with any method, try common patterns
+        if len(categories) == 0:
+            self.logger.warning("No categories found with navigation_type={}, trying universal fallback...", navigation_type)
+            categories = await self._fallback_extraction(page, strategy)
 
         processed = self._post_process(categories, target_url)
         validate_hierarchy(processed)
@@ -162,6 +167,68 @@ class CategoryExtractorTool:
             self.logger.info("Block {}: Extracted {} unique categories", idx, block_categories)
         
         self.logger.info("Total categories extracted: {} (from {} blocks)", len(categories), min(len(blocks), max_blocks_to_process))
+        return categories
+    
+    async def _fallback_extraction(self, page: Page, strategy: Dict[str, Any]) -> List[Category]:
+        """Fallback extraction using common e-commerce patterns."""
+        fallback_patterns = [
+            # Sidebar filters/categories
+            {"container": "aside", "links": "a"},
+            {"container": ".sidebar", "links": "a"},
+            {"container": ".filters", "links": "a"},
+            {"container": "[class*='category']", "links": "a"},
+            {"container": "[class*='filter']", "links": "a"},
+            # Navigation menus
+            {"container": "nav", "links": "a"},
+            {"container": ".navigation", "links": "a"},
+            {"container": "[role='navigation']", "links": "a"},
+        ]
+        
+        categories: List[Category] = []
+        seen_urls = set()
+        
+        for pattern in fallback_patterns:
+            try:
+                containers = await page.query_selector_all(pattern["container"])
+                if not containers:
+                    continue
+                
+                self.logger.info("Fallback: Found {} containers with selector: {}", len(containers), pattern["container"])
+                
+                for container in containers[:3]:  # Limit to first 3 containers
+                    links = await container.query_selector_all(pattern["links"])
+                    self.logger.info("Fallback: Found {} links in container", len(links))
+                    
+                    for link in links[:50]:  # Limit to 50 links per container
+                        try:
+                            name, url = await self._extract_link(link, None)
+                            
+                            # Filter out non-category links (common patterns)
+                            if any(skip in url.lower() for skip in ['login', 'register', 'cart', 'checkout', 'account', 'search', 'contact', 'about', 'help', 'faq']):
+                                continue
+                            
+                            # Skip duplicates
+                            if url in seen_urls:
+                                continue
+                            seen_urls.add(url)
+                            
+                            # Only add if it looks like a category (has meaningful text)
+                            if len(name) > 2 and len(name) < 100:
+                                cat_id = self._next_category_id()
+                                categories.append(self._build_category(cat_id, name, url, 0, None))
+                                
+                        except Exception:  # noqa: BLE001
+                            continue
+                
+                # If we found categories, stop trying other patterns
+                if categories:
+                    self.logger.info("Fallback: Extracted {} categories with pattern: {}", len(categories), pattern["container"])
+                    break
+                    
+            except Exception as exc:  # noqa: BLE001
+                self.logger.debug("Fallback pattern {} failed: {}", pattern["container"], exc)
+                continue
+        
         return categories
 
     async def _extract_generic_links(self, page: Page, strategy: Dict[str, Any]) -> List[Category]:

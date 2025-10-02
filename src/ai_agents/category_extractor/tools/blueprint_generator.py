@@ -66,12 +66,21 @@ class BlueprintGeneratorTool:
             interactions=strategy.get("interactions", []),
             validation_rules=self._build_validation_rules(categories, strategy),
             extraction_stats=self._build_stats(categories),
-            notes=strategy.get("notes", []),
+            notes=self._normalize_notes(strategy.get("notes", [])),
         )
 
         path = self._write_blueprint(blueprint)
         self.agent.state["blueprint_path"] = str(path)
         return str(path)
+
+    def _normalize_notes(self, notes: Any) -> List[str]:
+        """Normalize notes to always be a list of strings."""
+        if isinstance(notes, list):
+            return notes
+        elif isinstance(notes, str):
+            return [notes]
+        else:
+            return []
 
     def _build_strategy_section(self, strategy: Dict[str, Any]) -> Dict[str, Any]:
         return {

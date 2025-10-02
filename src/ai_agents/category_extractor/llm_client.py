@@ -289,28 +289,81 @@ class LLMMixin:
     """Mixin providing common LLM functionality."""
     
     def _build_prompt(self, url: str, html_snippet: str) -> str:
-        """Build the analysis prompt."""
+        """
+        Build a robust analysis prompt for extracting category navigation from an e-commerce page.
+        - Forces REAL selectors (no hallucinations).
+        - Encourages multiple candidate patterns (top-nav, sidebar, dropdown, etc.).
+        - Asks for small innerText evidence to verify selectors.
+        - Captures interactions suitable for Playwright (click/hover/wait).
+        - Adds include/exclude href rules to filter noise links.
+        - Output is STRICT JSON (no comments, no trailing commas).
+        """
+        head = html_snippet[:4000]
+        truncated_flag = len(html_snippet) > 4000
+
         return (
-            "Analyze this e-commerce webpage to identify product category navigation patterns. "
-            "Look for navigation menus, category links, and hierarchical structures. "
-            "Return a JSON response with the following structure:\n\n"
+            "You are an expert DOM analyst helping a Python scraping agent detect PRODUCT CATEGORIES on a web page.\n"
+            "Return ONLY valid JSON (UTF-8, no comments, no trailing commas). Do NOT include any explanation outside JSON.\n\n"
+            "## GOAL\n"
+            "Identify how categories (or similar: departments, collections, shop by, ranges, menus, taxonomy) are implemented.\n"
+            "Produce REAL CSS selectors present in the HTML below, plus minimal interaction steps if disclosure menus are hidden.\n\n"
+            "## HARD REQUIREMENTS\n"
+            "1) Use ONLY classes/ids/structures that appear in the provided HTML. Do NOT invent selectors.\n"
+            "2) Prefer stable anchors: landmark tags (nav, header, aside), ARIA roles (role='navigation'|'menu'|'tree'), data-* attributes.\n"
+            "3) Provide 1–3 candidate 'nav models' (different plausible patterns). Rank by confidence.\n"
+            "4) Include tiny evidence samples (innerText of 1–5 matched links) so a human can verify quickly.\n"
+            "5) If categories are absent/hidden in this snippet, return empty selectors and a fallback plan.\n\n"
+            "## WHAT TO LOOK FOR\n"
+            "- Top navigation: <nav>, <header>, mega menus, hover menus, <ul>/<li> lists, role='menubar'.\n"
+            "- Sidebars: <aside>, .sidebar, .filters, .categories, facets trees, accordion sections.\n"
+            "- Dropdown/accordion/flyout panels: elements toggled by buttons with aria-expanded, aria-controls, data-toggle, etc.\n"
+            "- Breadcrumb/JSON-LD hints: breadcrumb lists or ItemList that reveal taxonomy terms.\n"
+            "- Synonyms: 'Departments', 'Collections', 'Ranges', 'Shop', 'Shop by', 'Brands' (brands may be categories on some sites).\n\n"
+            "## NOISE TO AVOID (exclude via link filters)\n"
+            "- Account, Login, Register, Cart, Basket, Wishlist, Help/FAQ, Contact, Blog, Checkout, Search, Language, Currency.\n"
+            "- Very generic footers that are not category trees.\n\n"
+            "## OUTPUT (STRICT JSON)\n"
             "{\n"
-            '  "navigation_type": "sidebar|hover_menu|dropdown|accordion|other",\n'
-            '  "selectors": {\n'
-            '    "nav_container": "CSS selector for main navigation",\n'
-            '    "category_links": "CSS selector for category links",\n'
-            '    "top_level_items": "CSS selector for top-level menu items",\n'
-            '    "flyout_panel": "CSS selector for flyout/dropdown panels (if any)",\n'
-            '    "subcategory_list": "CSS selector for subcategory lists (if any)"\n'
-            "  },\n"
-            '  "interactions": [\n'
-            '    {"type": "hover|click|scroll", "target": "selector", "wait_for": "selector"}\n'
+            '  "url": "<echo URL>",\n'
+            '  "html_truncated": true|false,\n'
+            '  "nav_models": [\n'
+            "    {\n"
+            '      "navigation_type": "top_nav|sidebar|dropdown|accordion|hover_menu|filter_sidebar|breadcrumbs|unknown",\n'
+            '      "selectors": {\n'
+            '        "nav_container": "REAL CSS selector for container",\n'
+            '        "category_links": "REAL CSS selector for category anchors",\n'
+            '        "top_level_items": "selector for top-level li/div nodes or anchors",\n'
+            '        "flyout_panel": "selector for flyout/dropdown panels or null",\n'
+            '        "subcategory_list": "selector for subcategory lists or null"\n'
+            "      },\n"
+            '      "interactions": [\n'
+            '        {"type": "hover|click", "target": "selector", "wait_for": "selector to appear or null"}\n'
+            "      ],\n"
+            '      "link_filters": {\n'
+            '        "include_href_patterns": ["regex or substring patterns like \\"/category\\", \\"/c/\\""],\n'
+            '        "exclude_href_patterns": ["account|login|register|cart|wishlist|help|faq|contact|checkout|search|language|currency"]\n'
+            "      },\n"
+            '      "evidence": {\n'
+            '        "sample_text": ["up to 5 innerText samples e.g. \\"Women\\", \\"Men\\", \\"Kids\\", \\"Sale\\""],\n'
+            '        "counts": {"category_links": 0, "top_level_items": 0}\n'
+            "      },\n"
+            '      "confidence": 0.0\n'
+            "    }\n"
             "  ],\n"
-            '  "confidence": 0.0-1.0,\n'
-            '  "notes": ["observation1", "observation2"]\n'
+            '  "best_index": 0,\n'
+            '  "fallback_plan": [\n'
+            '    "If no categories found: try sitemap.xml for /category/ or /collections/, check JSON-LD ItemList, or scan <footer> with stricter include filters."\n'
+            "  ],\n"
+            '  "notes": ["brief reasoning on why the best model was chosen"]\n'
             "}\n\n"
+            "## VALIDATION RULES\n"
+            "- Every selector MUST match something that exists in the provided HTML.\n"
+            "- Arrays may be empty if unknown; use empty arrays [] rather than null.\n"
+            "- confidence in [0.0, 1.0]. best_index is the index of the strongest candidate in nav_models.\n\n"
             f"URL: {url}\n"
-            f"HTML snippet (first 4000 chars):\n{html_snippet[:4000]}"
+            f"HTML_SNIPPET_FIRST_4000_CHARS (truncated={str(truncated_flag).lower()}):\n"
+            f"{head}\n"
+            "END_OF_HTML_SNIPPET\n"
         )
     
     def _parse_response(self, content: str, base_url: str) -> Dict[str, Any]:
@@ -333,7 +386,23 @@ class LLMMixin:
             
             structured = json.loads(json_str)
             
-            # Validate and clean the response
+            # Handle new format with nav_models array
+            if "nav_models" in structured and structured["nav_models"]:
+                best_index = structured.get("best_index", 0)
+                best_model = structured["nav_models"][best_index] if best_index < len(structured["nav_models"]) else structured["nav_models"][0]
+                
+                return {
+                    "navigation_type": best_model.get("navigation_type", "unknown"),
+                    "selectors": best_model.get("selectors", {}),
+                    "interactions": best_model.get("interactions", []),
+                    "confidence": float(best_model.get("confidence", 0.5)),
+                    "notes": structured.get("notes", []),
+                    "link_filters": best_model.get("link_filters", {}),
+                    "evidence": best_model.get("evidence", {}),
+                    "analyzed_at": self._get_timestamp()
+                }
+            
+            # Fallback to old format
             return {
                 "navigation_type": structured.get("navigation_type", "unknown"),
                 "selectors": structured.get("selectors", {}),

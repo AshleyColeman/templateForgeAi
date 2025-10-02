@@ -68,8 +68,23 @@ class PageAnalyzerTool:
                 continue
 
     async def _capture_screenshot(self, page) -> str:
-        data = await page.screenshot(full_page=True, type="png")
-        return base64.b64encode(data).decode("ascii")
+        """Capture screenshot with fallback strategies."""
+        try:
+            # Try full page screenshot first
+            data = await page.screenshot(full_page=True, type="png")
+            return base64.b64encode(data).decode("ascii")
+        except Exception as e:
+            self.logger.warning("Full page screenshot failed: {}, trying viewport only", e)
+            try:
+                # Fallback: viewport only (visible area)
+                data = await page.screenshot(full_page=False, type="png")
+                return base64.b64encode(data).decode("ascii")
+            except Exception as e2:
+                self.logger.error("Viewport screenshot also failed: {}, returning empty", e2)
+                # Return a minimal 1x1 transparent PNG as last resort
+                # This allows the extraction to continue without screenshot
+                minimal_png = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82'
+                return base64.b64encode(minimal_png).decode("ascii")
 
     async def _simplified_html(self, page) -> str:
         script = """
