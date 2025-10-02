@@ -70,6 +70,7 @@ class CategoryExtractionAgent:
                 model_id=self.config.ollama_model,
                 temperature=self.config.model_temperature,
                 keep_alive=self.config.ollama_keep_alive,
+                timeout=180.0,  # 3 minutes timeout for complex analysis
             )
             # Pass tools to Agent constructor (Strands 1.10+)
             return StrandsAgent(

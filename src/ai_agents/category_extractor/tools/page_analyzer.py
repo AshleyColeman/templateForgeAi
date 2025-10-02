@@ -33,7 +33,13 @@ class PageAnalyzerTool:
         self.logger.info("Analyzing page: {}", url)
 
         if force_refresh or page.url != url:
-            await page.goto(url, wait_until="networkidle", timeout=self.config.browser_timeout)
+            # Use domcontentloaded instead of networkidle for sites with persistent connections
+            try:
+                await page.goto(url, wait_until="domcontentloaded", timeout=self.config.browser_timeout)
+            except Exception as e:
+                # Fallback to load if domcontentloaded fails
+                self.logger.warning("domcontentloaded wait failed, trying load: {}", e)
+                await page.goto(url, wait_until="load", timeout=self.config.browser_timeout)
             await page.wait_for_timeout(2000)
 
         await self._handle_cookie_consent(page)

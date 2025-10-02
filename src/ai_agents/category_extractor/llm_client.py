@@ -150,10 +150,20 @@ class OllamaLLMClient(LLMClient):
         html_snippet: str
     ) -> Dict[str, Any]:
         """Analyze webpage using local Ollama model."""
+        from .utils.logger import get_logger
+        logger = get_logger(0)  # Use default logger
+        
         prompt = self._build_prompt(url, html_snippet)
         
         try:
             import httpx
+            import time
+            
+            logger.info("Sending request to Ollama at {}", self.config.ollama_host)
+            logger.info("Using model: {}", self.config.ollama_model)
+            logger.debug("Prompt length: {} chars", len(prompt))
+            
+            start_time = time.time()
             
             async with httpx.AsyncClient() as client:
                 response = await client.post(
@@ -169,16 +179,33 @@ class OllamaLLMClient(LLMClient):
                             "num_predict": self.config.max_tokens
                         }
                     },
-                    timeout=60.0
+                    timeout=120.0  # Increased timeout for complex analysis
                 )
+                
+                elapsed = time.time() - start_time
+                logger.info("Ollama response received in {:.2f}s", elapsed)
+                
                 response.raise_for_status()
                 
                 result = response.json()
                 # Ollama /api/chat returns message in result["message"]["content"]
                 content = result.get("message", {}).get("content", "")
+                logger.debug("Response length: {} chars", len(content))
+                
                 return self._parse_response(content, url)
                 
+        except httpx.ReadTimeout as e:
+            logger.error("Ollama request timed out after 120s")
+            logger.error("Model {} may be too slow or not loaded", self.config.ollama_model)
+            raise AnalysisError(
+                f"Ollama timeout: Model '{self.config.ollama_model}' took too long to respond. "
+                f"Consider using a faster model or switching to OpenAI/Anthropic."
+            )
+        except httpx.HTTPStatusError as e:
+            logger.error("Ollama HTTP error: {} {}", e.response.status_code, e.response.text)
+            raise AnalysisError(f"Ollama HTTP error: {e.response.status_code} - {e.response.text}")
         except Exception as e:
+            logger.error("Ollama API error: {}", str(e))
             raise AnalysisError(f"Ollama API error: {e}")
 
 

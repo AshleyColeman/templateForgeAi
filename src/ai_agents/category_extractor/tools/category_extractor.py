@@ -107,25 +107,61 @@ class CategoryExtractorTool:
         if not container or not link_selector:
             raise ExtractionError("Click navigation missing selectors")
 
+        # Try to activate sidebar if there's a trigger button
+        await self._activate_sidebar_menu(page, strategy)
+        
         categories: List[Category] = []
+        
+        # Wait for sidebar to be visible
+        await page.wait_for_timeout(500)
+        
+        # First, extract all top-level categories
         blocks = await page.query_selector_all(container)
         self.logger.info("Found {} navigation blocks with selector: {}", len(blocks), container)
         
+        # Track unique URLs to avoid duplicates across blocks
+        seen_urls = set()
+        max_blocks_to_process = 5  # Limit to first 5 blocks to avoid duplicates
+        
         for idx, block in enumerate(blocks):
+            # Stop if we've processed enough blocks
+            if idx >= max_blocks_to_process:
+                self.logger.info("Stopping after {} blocks to avoid duplicates", max_blocks_to_process)
+                break
+                
             links = await block.query_selector_all(link_selector)
-            self.logger.info("Block {}: Found {} links with selector: {}", idx, len(links), link_selector)
+            self.logger.info("Block {}/{}: Found {} links", idx + 1, min(len(blocks), max_blocks_to_process), len(links))
             
+            block_categories = 0
             for link in links:
                 try:
+                    # Check if this is an expandable item (has arrow/chevron)
+                    is_expandable = await self._is_expandable(link)
+                    
                     name, url = await self._extract_link(link, None)
-                    self.logger.debug("Extracted: {} -> {}", name, url)
-                    current_id = self._next_category_id()
-                    categories.append(self._build_category(current_id, name, url, 0, None))
+                    
+                    # Skip if we've already seen this URL
+                    if url in seen_urls:
+                        continue
+                    seen_urls.add(url)
+                    
+                    self.logger.debug("Extracted: {} -> {} (expandable: {})", name, url, is_expandable)
+                    parent_id = self._next_category_id()
+                    categories.append(self._build_category(parent_id, name, url, 0, None))
+                    block_categories += 1
+                    
+                    # If expandable, click to reveal subcategories
+                    if is_expandable:
+                        subcats = await self._extract_expandable_children(page, link, parent_id)
+                        categories.extend(subcats)
+                        
                 except Exception as exc:  # noqa: BLE001
                     self.logger.debug("Skipping link due to error: {}", exc)
                     continue
+            
+            self.logger.info("Block {}: Extracted {} unique categories", idx, block_categories)
         
-        self.logger.info("Total categories extracted: {}", len(categories))
+        self.logger.info("Total categories extracted: {} (from {} blocks)", len(categories), min(len(blocks), max_blocks_to_process))
         return categories
 
     async def _extract_generic_links(self, page: Page, strategy: Dict[str, Any]) -> List[Category]:
@@ -171,6 +207,133 @@ class CategoryExtractorTool:
         cid = self._next_id
         self._next_id += 1
         return cid
+
+    async def _is_expandable(self, element) -> bool:
+        """Check if a category item is expandable (has arrow/chevron icon)."""
+        try:
+            # Look for common expansion indicators
+            indicators = [
+                "svg",  # SVG icons
+                ".icon",
+                ".arrow",
+                ".chevron",
+                "[class*='expand']",
+                "[class*='toggle']",
+            ]
+            
+            for indicator in indicators:
+                icon = await element.query_selector(indicator)
+                if icon:
+                    return True
+            
+            # Check parent for expansion indicators
+            parent = await element.evaluate_handle("el => el.parentElement")
+            if parent:
+                for indicator in indicators:
+                    icon = await parent.query_selector(indicator)
+                    if icon:
+                        return True
+                        
+            return False
+        except Exception:  # noqa: BLE001
+            return False
+
+    async def _extract_expandable_children(
+        self, page: Page, parent_element, parent_id: int
+    ) -> List[Category]:
+        """Extract subcategories from an expandable parent category."""
+        subcategories: List[Category] = []
+        
+        try:
+            # Click to expand
+            await parent_element.click()
+            await page.wait_for_timeout(800)  # Wait for expansion animation
+            
+            # Look for subcategory container
+            # Common patterns for nested/child lists
+            child_selectors = [
+                "ul",  # Direct child list
+                "+ ul",  # Adjacent sibling list
+                "~ ul",  # Following sibling list
+                "[class*='submenu']",
+                "[class*='child']",
+                "[class*='nested']",
+            ]
+            
+            for selector in child_selectors:
+                try:
+                    child_container = await parent_element.query_selector(selector)
+                    if not child_container:
+                        # Try finding in parent's parent
+                        parent_parent = await parent_element.evaluate_handle("el => el.parentElement")
+                        if parent_parent:
+                            child_container = await parent_parent.query_selector(selector)
+                    
+                    if child_container:
+                        # Check if it's visible
+                        is_visible = await child_container.is_visible()
+                        if is_visible:
+                            # Extract all links from child container
+                            child_links = await child_container.query_selector_all("a")
+                            self.logger.debug("Found {} child links", len(child_links))
+                            
+                            for child_link in child_links:
+                                try:
+                                    name, url = await self._extract_link(child_link, None)
+                                    child_id = self._next_category_id()
+                                    subcategories.append(
+                                        self._build_category(child_id, name, url, 1, parent_id)
+                                    )
+                                except Exception:  # noqa: BLE001
+                                    continue
+                            
+                            if subcategories:
+                                break  # Found subcategories, no need to try other selectors
+                                
+                except Exception:  # noqa: BLE001
+                    continue
+            
+            # Click again to collapse (cleanup)
+            if subcategories:
+                await parent_element.click()
+                await page.wait_for_timeout(300)
+                
+        except Exception as exc:  # noqa: BLE001
+            self.logger.debug("Error extracting expandable children: {}", exc)
+        
+        return subcategories
+
+    async def _activate_sidebar_menu(self, page: Page, strategy: Dict[str, Any]) -> None:
+        """Try to activate sidebar menu if there's a trigger button (e.g., 'Shop by Products')."""
+        trigger_selectors = [
+            "button:has-text('Shop by Products')",
+            "a:has-text('Shop by Products')",
+            "[data-testid='shop-by-products']",
+            ".shop-by-products",
+            # Additional common patterns
+            "button:has-text('Categories')",
+            "button:has-text('Browse')",
+            "[aria-label*='Shop']",
+            "[aria-label*='Categories']",
+        ]
+        
+        for selector in trigger_selectors:
+            try:
+                trigger = await page.query_selector(selector)
+                if trigger:
+                    # Check if it's visible
+                    is_visible = await trigger.is_visible()
+                    if is_visible:
+                        self.logger.info("Found sidebar trigger: {}", selector)
+                        await trigger.click()
+                        await page.wait_for_timeout(1000)  # Wait for sidebar to appear
+                        self.logger.info("Activated sidebar menu")
+                        return
+            except Exception as exc:  # noqa: BLE001
+                self.logger.debug("Trigger selector {} failed: {}", selector, exc)
+                continue
+        
+        self.logger.debug("No sidebar trigger found, menu may already be visible")
 
     def _post_process(self, categories: List[Category], base_url: str) -> List[Category]:
         deduped: Dict[Tuple[str, int], Category] = {}

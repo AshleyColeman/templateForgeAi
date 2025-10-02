@@ -6,7 +6,7 @@ __pycache__/
 # Virtual environments
 .venv/
 venv/
-ENV/
+# ENV/
 
 # Build artifacts
 build/
@@ -23,8 +23,8 @@ dist/
 Thumbs.db
 
 # Environment files
-.env
-.env.local
+# .env
+# .env.local
 
 # Poetry lock (optional)
 poetry.lock
