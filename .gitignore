@@ -43,7 +43,7 @@ htmlcov/
 coverage.xml
 
 # Blueprints (generated)
-src/ai_agents/category_extractor/blueprints/*.json
+# src/ai_agents/category_extractor/blueprints/*.json
 
 # Test artifacts
 .pytest_cache/

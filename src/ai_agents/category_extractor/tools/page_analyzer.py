@@ -87,11 +87,48 @@ class PageAnalyzerTool:
                 return base64.b64encode(minimal_png).decode("ascii")
 
     async def _simplified_html(self, page) -> str:
+        """Extract relevant HTML focusing on navigation areas."""
         script = """
             () => {
-                const clone = document.body.cloneNode(true);
-                clone.querySelectorAll('script, style, noscript').forEach(node => node.remove());
-                return clone.outerHTML.slice(0, 50000);
+                // Priority 1: Extract navigation-related elements first
+                const navElements = [];
+                
+                // Common navigation containers
+                const navSelectors = [
+                    'nav', 'header', 'aside', '.sidebar', '.navigation', 
+                    '[role="navigation"]', '[class*="menu"]', '[class*="nav"]',
+                    '[class*="category"]', '[class*="department"]', '[class*="collection"]'
+                ];
+                
+                navSelectors.forEach(selector => {
+                    try {
+                        const elements = document.querySelectorAll(selector);
+                        elements.forEach(el => {
+                            if (el && !navElements.includes(el)) {
+                                navElements.push(el);
+                            }
+                        });
+                    } catch(e) {}
+                });
+                
+                // Build HTML string prioritizing navigation
+                let html = '';
+                
+                // Add navigation elements first (most important)
+                navElements.forEach(el => {
+                    const clone = el.cloneNode(true);
+                    clone.querySelectorAll('script, style, noscript, img, svg').forEach(n => n.remove());
+                    html += clone.outerHTML + '\\n';
+                });
+                
+                // If we have space, add some body content for context
+                if (html.length < 30000) {
+                    const bodyClone = document.body.cloneNode(true);
+                    bodyClone.querySelectorAll('script, style, noscript, img, svg, nav, header, aside').forEach(n => n.remove());
+                    html += bodyClone.outerHTML.slice(0, 20000);
+                }
+                
+                return html.slice(0, 60000);  // Increased limit
             }
         """
         return await page.evaluate(script)

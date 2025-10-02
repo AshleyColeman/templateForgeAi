@@ -1,0 +1,108 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "site_url": "https://www.dischem.co.za/shop-by-department",
+    "retailer_id": 2,
+    "retailer_name": "Dischem",
+    "generated_at": "2025-10-02T13:19:21.205252Z",
+    "generated_by": "ai_category_extractor",
+    "agent_version": "0.1.0",
+    "confidence_score": 0.8
+  },
+  "extraction_strategy": {
+    "navigation_type": "top_nav|sidebar|dropdown|accordion|hover_menu|filter_sidebar|breadcrumbs|unknown",
+    "complexity": "unknown",
+    "requires_javascript": true,
+    "dynamic_loading": {}
+  },
+  "selectors": {
+    "nav_container": ".header .content-wrapper",
+    "category_links": ".header .content a",
+    "top_level_items": ".header .content li",
+    "flyout_panel": null,
+    "subcategory_list": null
+  },
+  "interactions": [
+    {
+      "type": "hover|click",
+      "target": ".header .content-wrapper",
+      "wait_for": "nav to appear or null"
+    }
+  ],
+  "validation_rules": {
+    "min_categories": 3,
+    "max_categories": 28,
+    "max_depth": 0,
+    "required_fields": [
+      "name",
+      "url"
+    ],
+    "url_pattern": ""
+  },
+  "extraction_stats": {
+    "total_categories": 14,
+    "max_depth": 0,
+    "categories_by_depth": {
+      "0": 14
+    }
+  },
+  "edge_cases": [],
+  "notes": [
+    "The provided HTML snippet suggests a top-level navigation structure using the header elements. The presence of 'Shop by' and 'Browse' links indicates a hierarchical product organization. However, further analysis is required to confirm the exact taxonomy structure."
+  ],
+  "evidence": {
+    "sample_categories": [
+      "Gift Cards",
+      "Beauty",
+      "Health and Wellness",
+      "Baby & Child",
+      "Electrical",
+      "Food",
+      "Professional Hair Care",
+      "Household",
+      "Healthy Living",
+      "Personal Care"
+    ],
+    "sample_urls": [
+      "https://www.dischem.co.za/shop-by-department/gift-cards",
+      "https://www.dischem.co.za/catalog/category/view/s/beauty/id/25155/",
+      "https://www.dischem.co.za/shop-by-department/health-and-wellness",
+      "https://www.dischem.co.za/shop-by-department/baby-child",
+      "https://www.dischem.co.za/shop-by-department/electrical"
+    ],
+    "total_found": 14,
+    "ai_evidence": {
+      "sample_text": [
+        "Women",
+        "Men",
+        "Kids",
+        "Sale"
+      ],
+      "counts": {
+        "category_links": 0,
+        "top_level_items": 0
+      }
+    }
+  },
+  "link_filters": {
+    "include_href_patterns": [
+      "/category/",
+      "/c/"
+    ],
+    "exclude_href_patterns": [
+      "account",
+      "login",
+      "register",
+      "cart",
+      "wishlist",
+      "help",
+      "faq",
+      "contact",
+      "checkout",
+      "search",
+      "language",
+      "currency"
+    ]
+  },
+  "extraction_method": "fallback"
+}

@@ -47,11 +47,30 @@ class CategoryExtractorTool:
         else:
             categories = await self._extract_generic_links(page, strategy)
 
-        # Universal fallback: If no categories found with any method, try common patterns
+        # Universal fallback: If no categories found OR extraction looks suspicious, try common patterns
+        needs_fallback = False
+        
         if len(categories) == 0:
             self.logger.warning("No categories found with navigation_type={}, trying universal fallback...", navigation_type)
-            categories = await self._fallback_extraction(page, strategy)
-            if len(categories) > 0:
+            needs_fallback = True
+        elif len(categories) < 5:
+            # Very few categories - might be wrong (menu buttons, not categories)
+            self.logger.warning("Only {} categories found, seems suspicious, trying fallback...", len(categories))
+            needs_fallback = True
+        elif self._looks_like_noise(categories):
+            # Categories look like navigation noise (Sign In, Cart, etc.)
+            self.logger.warning("Categories look like navigation noise, trying fallback...")
+            needs_fallback = True
+        
+        if needs_fallback:
+            fallback_categories = await self._fallback_extraction(page, strategy)
+            if len(fallback_categories) > len(categories):
+                self.logger.info("Fallback found more categories ({} vs {}), using fallback", len(fallback_categories), len(categories))
+                categories = fallback_categories
+                self.agent.state["extraction_method"] = "fallback"
+            elif len(categories) > 0:
+                self.agent.state["extraction_method"] = "ai"
+            else:
                 self.agent.state["extraction_method"] = "fallback"
         else:
             self.agent.state["extraction_method"] = "ai"
@@ -61,6 +80,33 @@ class CategoryExtractorTool:
         self.agent.state["categories_found"] = len(processed)
         self.agent.state["categories"] = processed
         return {"categories": processed, "total": len(processed), "navigation_type": navigation_type}
+
+    def _looks_like_noise(self, categories: List[Category]) -> bool:
+        """Check if extracted categories look like navigation noise."""
+        noise_keywords = [
+            'sign in', 'login', 'register', 'cart', 'basket', 'wishlist',
+            'account', 'checkout', 'search', 'help', 'contact', 'about',
+            'skip to', 'menu', 'close', 'open', 'toggle', 'show', 'hide',
+            'store locator', 'stores', 'find a store', 'rewards', 'loyalty',
+            'track order', 'my orders', 'my account', 'sign up', 'subscribe'
+        ]
+        
+        # Also check for generic single-word categories that are likely wrong
+        generic_words = ['menu', 'home', 'shop', 'browse', 'stores', 'rewards']
+        
+        noise_count = 0
+        for cat in categories[:10]:  # Check first 10
+            name_lower = cat.get('name', '').lower().strip()
+            
+            # Check noise keywords
+            if any(keyword in name_lower for keyword in noise_keywords):
+                noise_count += 1
+            # Check if it's a single generic word
+            elif name_lower in generic_words:
+                noise_count += 1
+        
+        # If more than 50% look like noise, it's probably wrong
+        return noise_count > len(categories[:10]) * 0.5
 
     def _require_page(self) -> Page:
         if not self.agent.page:
