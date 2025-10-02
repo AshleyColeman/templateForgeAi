@@ -37,7 +37,7 @@ def cli() -> None:
 @click.option("--retailer-id", required=True, type=int, help="Retailer ID in the database")
 @click.option("--headless/--no-headless", default=True, help="Run browser in headless mode")
 @click.option("--force-refresh", is_flag=True, help="Force reload of initial page")
-@click.option("--blueprint-only", is_flag=True, help="Generate blueprint without saving categories")
+@click.option("--blueprint-only", "--dry-run", is_flag=True, help="Generate blueprint/template only (don't save to database)")
 @click.option("--blueprint", type=click.Path(path_type=str), help="Existing blueprint path to run without LLM")
 def extract_command(
     url: str,
@@ -47,7 +47,11 @@ def extract_command(
     blueprint_only: bool,
     blueprint: Optional[str],
 ) -> None:
-    """Run the extraction workflow for a retailer."""
+    """Run the extraction workflow for a retailer.
+    
+    Use --blueprint-only to generate the template without saving categories to database.
+    This is useful when you just want the extraction strategy for your scraper.
+    """
     try:
         asyncio.run(
             _run_extract(
