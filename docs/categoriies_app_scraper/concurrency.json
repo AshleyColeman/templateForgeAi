@@ -1,0 +1,28 @@
+{
+  "maxGlobalConcurrent": 4,
+  "retailerConcurrency": {
+    "clicks": 2,
+    "dischem": 2,
+    "faithfultonature": 1,
+    "picknpay": 2,
+    "wellnesswarehouse": 1,
+    "default": 1
+  },
+  "database": {
+    "maxBatchSize": 5,
+    "lockTimeoutMs": 300000,
+    "lockRetryIntervalMs": 5000,
+    "poolSize": 10,
+    "queryTimeoutMs": 300000
+  },
+  "scraping": {
+    "maxItemsPerTask": 1000,
+    "taskTimeoutMs": 1800000,
+    "browserConcurrency": 1,
+    "retryDelayMs": 10000,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "viewport": { "width": 1920, "height": 1080 },
+    "maxCategoriesPerTask": 1000,
+    "categoryTimeoutMs": 1800000
+  }
+}
