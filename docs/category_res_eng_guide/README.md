@@ -1,8 +1,13 @@
 # AI-Powered Category Extractor: Complete Documentation
 
-## 📋 Table of Contents
+> **📍 Start Here** | For complete documentation index, see **[INDEX.md](./INDEX.md)**
+
+## 📋 Overview
 
 This directory contains comprehensive documentation for building an AI-powered category extraction system for e-commerce websites using Python and Strands Agents SDK.
+
+### 📁 Archive Notice
+Duplicate and outdated documentation files have been moved to `/archive/` (Oct 2025). All active documentation is current and maintained.
 
 ### Documents
 
@@ -99,6 +104,47 @@ This directory contains comprehensive documentation for building an AI-powered c
     - Communication plan
     - Success metrics
     - Post-migration monitoring
+
+### 🔍 Analysis & Implementation Guides
+
+13. **[ANALYSIS_SUMMARY.md](./ANALYSIS_SUMMARY.md)**
+    - Current state vs needed functionality
+    - Gap analysis and roadmap
+    - Implementation priorities
+
+14. **[AI_AGENT_VS_TYPESCRIPT_SCRAPER.md](./AI_AGENT_VS_TYPESCRIPT_SCRAPER.md)**
+    - Detailed comparison
+    - Feature parity analysis
+    - Migration considerations
+
+15. **[RECURSIVE_DISCOVERY_IMPLEMENTATION.md](./RECURSIVE_DISCOVERY_IMPLEMENTATION.md)**
+    - Complete implementation guide
+    - Code examples and testing
+    - Step-by-step instructions
+
+### 🚀 Quick Start & Reference
+
+16. **[QUICK_START_PRODUCT_SCRAPER.md](./QUICK_START_PRODUCT_SCRAPER.md)**
+    - Build product scraper in 30 minutes
+    - Hands-on tutorial with code
+
+17. **[AGENT_FRAMEWORK_GUIDE.md](./AGENT_FRAMEWORK_GUIDE.md)**
+    - Create custom AI agents
+    - Framework patterns and best practices
+
+18. **[PRODUCT_EXTRACTOR_GUIDE.md](./PRODUCT_EXTRACTOR_GUIDE.md)**
+    - Complete product extraction example
+    - Production-ready implementation
+
+19. **[MULTI_AGENT_ORCHESTRATION.md](./MULTI_AGENT_ORCHESTRATION.md)**
+    - Coordinate multiple agents
+    - Complex workflow management
+
+20. **[SYSTEM_OVERVIEW.md](./SYSTEM_OVERVIEW.md)**
+    - High-level system explanation
+    - Architecture and capabilities
+
+For the complete navigation guide, see **[INDEX.md](./INDEX.md)**
 
 ## 🚀 Quick Start
 

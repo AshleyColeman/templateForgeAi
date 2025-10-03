@@ -4,21 +4,6 @@
 
 This is an **AI-powered web scraping system** that automatically extracts structured data from e-commerce websites without manual configuration. Instead of writing custom code for each website, AI agents analyze pages and figure out how to extract data on their own.
 
-## 🆕 NEW: AI Agent Analysis Documents
-
-**Just added comprehensive analysis** comparing the AI agent with the TypeScript scraper:
-
-→ **[ANALYSIS_DOCS_INDEX.md](./ANALYSIS_DOCS_INDEX.md)** ⭐ **START HERE for analysis**
-- Does the AI agent get ALL categories and subcategories?
-- What's missing and how to fix it?
-- Complete gap analysis and implementation guide
-
-Quick Links:
-- [ANALYSIS_SUMMARY.md](./ANALYSIS_SUMMARY.md) - 10-min overview
-- [AI_AGENT_VS_TYPESCRIPT_SCRAPER.md](./AI_AGENT_VS_TYPESCRIPT_SCRAPER.md) - Detailed comparison
-- [RECURSIVE_DISCOVERY_IMPLEMENTATION.md](./RECURSIVE_DISCOVERY_IMPLEMENTATION.md) - Code to fix it
-- [COMPLETE_COMPARISON_AND_ACTION_PLAN.md](./COMPLETE_COMPARISON_AND_ACTION_PLAN.md) - Action plan
-
 ## 🚀 Quick Links
 
 | If you want to... | Read this document |
@@ -113,10 +98,40 @@ Quick Links:
     - Unit, integration, and E2E tests
     - Validation strategies
 
-13. **[README_NEW_DOCS.md](./README_NEW_DOCS.md)**
-    - Navigation guide for all documentation
-    - Quick reference for common tasks
-    - FAQ and troubleshooting
+13. **[06_FAQ_and_Troubleshooting.md](./06_FAQ_and_Troubleshooting.md)**
+    - Common issues and solutions
+    - Debugging tips
+    - Performance optimization
+
+14. **[08_Real_World_Examples.md](./08_Real_World_Examples.md)**
+    - Case studies from real retailers
+    - Different site patterns and solutions
+    - Blueprint examples
+
+15. **[09_Cost_Analysis_and_ROI.md](./09_Cost_Analysis_and_ROI.md)**
+    - Cost breakdown (LLM, infrastructure, development)
+    - ROI comparison vs traditional scrapers
+    - Cost optimization strategies
+
+16. **[10_Quick_Reference.md](./10_Quick_Reference.md)**
+    - One-page cheat sheet
+    - Common commands and patterns
+    - Quick troubleshooting
+
+17. **[11_Migration_Strategy.md](./11_Migration_Strategy.md)**
+    - Phased migration plan
+    - Validation and rollback procedures
+    - Success metrics
+
+18. **[PROVIDER_UPDATE_NOTES.md](./PROVIDER_UPDATE_NOTES.md)**
+    - LLM provider configuration
+    - Ollama/OpenAI/Anthropic setup
+    - Cost comparisons
+
+19. **[QUICK_REFERENCE_CARD.md](./QUICK_REFERENCE_CARD.md)**
+    - Quick start cheat sheet
+    - Implementation checklist
+    - Success criteria
 
 ## 🎯 Learning Paths
 
@@ -346,11 +361,14 @@ A: Run with `--no-headless` to see browser, check logs, simplify task
 | PRODUCT_EXTRACTOR_GUIDE.md | ✅ Complete | Complete example |
 | MULTI_AGENT_ORCHESTRATION.md | ✅ Complete | Advanced usage |
 | QUICK_START_PRODUCT_SCRAPER.md | ✅ Complete | Fast start |
-| 00_Project_Overview.md | ✅ Complete | Context |
-| 01-03_Technical_Docs | ✅ Complete | Reference |
-| 05_Blueprint_Schema.md | ✅ Complete | Blueprints |
-| README_NEW_DOCS.md | ✅ Complete | Navigation |
-| INDEX.md (this file) | ✅ Complete | Overview |
+| 00-11 (Numbered guides) | ✅ Complete | Comprehensive reference |
+| ANALYSIS_SUMMARY.md | ✅ Complete | AI agent analysis |
+| AI_AGENT_VS_TYPESCRIPT_SCRAPER.md | ✅ Complete | Gap analysis |
+| RECURSIVE_DISCOVERY_IMPLEMENTATION.md | ✅ Complete | Implementation guide |
+| PROVIDER_UPDATE_NOTES.md | ✅ Complete | LLM configuration |
+| QUICK_REFERENCE_CARD.md | ✅ Complete | Quick reference |
+| README.md | ✅ Complete | Main entry point |
+| INDEX.md (this file) | ✅ Complete | Documentation index |
 
 ## 🌟 Highlights
 
